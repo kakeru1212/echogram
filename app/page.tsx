@@ -28,7 +28,6 @@ export default function Page() {
   }, []);
 
   const handleDataLoaded = (key: keyof typeof componentLoading) => {
-    // console.log(`${key}のデータ読み込み完了`);
     setComponentLoading(prev => ({
       ...prev,
       [key]: false

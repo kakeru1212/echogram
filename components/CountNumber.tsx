@@ -42,6 +42,7 @@ export default function CountNumber({ startDate, endDate, dataType, onDataLoaded
   useEffect(() => {
     async function fetchChartData() {
       if (!userId || !startDate || !endDate) {
+        setvalue(0);
         if (onDataLoaded) onDataLoaded();
         return;
       }
@@ -59,6 +60,7 @@ export default function CountNumber({ startDate, endDate, dataType, onDataLoaded
           const igUsername = igUsernameJson.instagram_username;
 
           response = await fetch(
+
             `/api/instagram/retrieve/business_discovery?user_id=${userId}&instagram_username=${igUsername}&start_date=${startDate}&end_date=${endDate}`
           );
         } else {
@@ -77,7 +79,7 @@ export default function CountNumber({ startDate, endDate, dataType, onDataLoaded
         const results = json.data[0];
 
         if (dataType === "business_discovery") {
-          const lastEntry = results[results.length - 1];
+          const lastEntry = results.length > 0 ? results[results.length - 1] : 0;
           setvalue(lastEntry.requestData);
         } else {
           const totalValue = results.reduce((sum: number, item: { requestData: number }) => sum + item.requestData, 0);
