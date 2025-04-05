@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider, SignedIn, SignedOut, SignIn } from '@clerk/nextjs'
 import { jaJP } from '@clerk/localizations'
@@ -7,14 +7,19 @@ import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/nav/app-sidebar";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+// const geistSans = Geist({
+//   variable: "--font-geist-sans",
+//   subsets: ["latin"],
+// });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+// const geistMono = Geist_Mono({
+//   variable: "--font-geist-mono",
+//   subsets: ["latin"],
+// });
+
+const inter = Inter({
   subsets: ["latin"],
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
@@ -28,14 +33,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-
-                
     <ClerkProvider localization={jaJP}>
-      <html lang="ja">
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-
+      <html lang="ja" className={inter.variable}>
+        <body className="min-h-screen bg-background font-sans antialiased">
           <SignedIn>
-            <main>
+            <main className="min-h-screen">
               <div className="[--header-height:calc(theme(spacing.14))]">
                 <SidebarProvider className="flex flex-col">
                   <div className="flex flex-1">
@@ -54,7 +56,6 @@ export default function RootLayout({
               <SignIn routing="hash" />
             </main>
           </SignedOut>
-
         </body>
       </html>
     </ClerkProvider>

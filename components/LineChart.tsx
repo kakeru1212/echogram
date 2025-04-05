@@ -24,7 +24,7 @@ type DataTypeOption = {
   label: string;
 };
 
-export default function FollowersChart({ startDate, endDate, onDataLoaded }: Props) {
+export default function LineChart({ startDate, endDate, onDataLoaded }: Props) {
   const { user } = useUser();
   const userId = user?.id || null;
   const [chartData, setChartData] = useState<any[]>([]);
@@ -80,13 +80,13 @@ export default function FollowersChart({ startDate, endDate, onDataLoaded }: Pro
         }
 
         const results = json.data[0];
-        const formattedData = results.map((entry: { date: string; JSONData: number }) => ({
+        const formattedData = results.map((entry: { date: string; requestData: number }) => ({
           date: dayjs(entry.date).format("YYYY-MM-DD"),
-          value: Math.round(entry.JSONData),
+          value: Math.round(entry.requestData),
           displayDate: dayjs(entry.date).format("M/D"),
         }));
 
-        formattedData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        formattedData.sort((a: { date: string }, b: { date: string }) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
         setChartData(formattedData);
       } catch (error) {

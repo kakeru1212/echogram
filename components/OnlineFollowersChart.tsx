@@ -100,7 +100,7 @@ export default function OnlineFollowersBubbleChart({ onDataLoaded }: { onDataLoa
         if (!json || !json.data || json.length === 0) {
           throw new Error('APIから有効なデータが返されませんでした。');
         }
-        const results = transformOnlineFollowersData(json.data[0][0].jsonData.values);
+        const results = transformOnlineFollowersData(json.data.requestData.values);
 
         const chartData = results.map((dayEntry: any) => {
           const date = new Date(dayEntry.end_time);

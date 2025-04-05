@@ -1,5 +1,6 @@
 {
   "cSpell.words": [
     "CURDATE"
-  ]
+  ],
+  "terminal.integrated.defaultProfile.windows": "Git Bash"
 }

@@ -93,7 +93,7 @@ export default function SexRatioChart({ onDataLoaded }: { onDataLoaded?: () => v
         if (!json || !json.data || json.length === 0) {
           throw new Error('APIから有効なデータが返されませんでした。');
         }
-        const results = json.data[0][0].jsonData.total_value.breakdowns[0].results;
+        const results = json.data.requestData.total_value.breakdowns[0].results;
 
         // 性別ごとの合計を計算
         const genderCounts: Record<string, number> = { F: 0, M: 0, U: 0 };

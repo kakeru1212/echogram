@@ -21,7 +21,7 @@ type DataTypeOption = {
   label: string;
 };
 
-export default function FollowerNumber({ startDate, endDate, dataType, onDataLoaded }: Props) {
+export default function CountNumber({ startDate, endDate, dataType, onDataLoaded }: Props) {
   const { user } = useUser();
   const userId = user?.id || null;
   const [error, setError] = useState<string | null>(null);
@@ -78,12 +78,9 @@ export default function FollowerNumber({ startDate, endDate, dataType, onDataLoa
 
         if (dataType === "business_discovery") {
           const lastEntry = results[results.length - 1];
-          if (lastEntry) {
-            console.log("lastEntry");
-          }
-          setvalue(lastEntry.JSONData);
+          setvalue(lastEntry.requestData);
         } else {
-          const totalValue = results.reduce((sum: number, item: { JsonData: number }) => sum + item.JSONData, 0);
+          const totalValue = results.reduce((sum: number, item: { requestData: number }) => sum + item.requestData, 0);
           setvalue(totalValue);
         }
 

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import DateRangePicker from "@/components/DateRangePicker"
-import FollowersChart from "@/components/FollowersChart";
-import FollowerNumber from "@/components/FollowerNumber";
+import LineChart from "@/components/LineChart";
+import CountNumber from "@/components/CountNumber";
 import DemographicsBarChart from "@/components/DemographicsBarChart";
 import Header from "@/components/nav/Header";
 import OnlineFollowersChart from "@/components/OnlineFollowersChart";
@@ -14,8 +14,8 @@ export default function Page() {
 
   const [dateRange, setDateRange] = useState<[string, string] | null>(null);
   const [componentLoading, setComponentLoading] = useState({
-    isFollowerNumber: true,
-    isFollowersChart: true,
+    isCountNumber: true,
+    isLineChart: true,
     isSexRatioChart: true,
     isDemographicsBarChart: true,
     isOnlineFollowersChart: true
@@ -43,17 +43,17 @@ export default function Page() {
 
       <div className="flex-1 p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
-          {dateRange && <FollowerNumber startDate={dateRange[0]} endDate={dateRange[1]} dataType="business_discovery"  onDataLoaded={() => handleDataLoaded("isFollowerNumber")} />}
-          {dateRange && <FollowerNumber startDate={dateRange[0]} endDate={dateRange[1]} dataType="reach"  onDataLoaded={() => handleDataLoaded("isFollowerNumber")} />}
-          {dateRange && <FollowerNumber startDate={dateRange[0]} endDate={dateRange[1]} dataType="views"  onDataLoaded={() => handleDataLoaded("isFollowerNumber")} />}
-          {dateRange && <FollowerNumber startDate={dateRange[0]} endDate={dateRange[1]} dataType="website_clicks"  onDataLoaded={() => handleDataLoaded("isFollowerNumber")} />}
-          {dateRange && <FollowerNumber startDate={dateRange[0]} endDate={dateRange[1]} dataType="profile_views"  onDataLoaded={() => handleDataLoaded("isFollowerNumber")} />}
-          {dateRange && <FollowerNumber startDate={dateRange[0]} endDate={dateRange[1]} dataType="total_interactions"  onDataLoaded={() => handleDataLoaded("isFollowerNumber")} />}
+          {dateRange && <CountNumber startDate={dateRange[0]} endDate={dateRange[1]} dataType="business_discovery"  onDataLoaded={() => handleDataLoaded("isCountNumber")} />}
+          {dateRange && <CountNumber startDate={dateRange[0]} endDate={dateRange[1]} dataType="reach"  onDataLoaded={() => handleDataLoaded("isCountNumber")} />}
+          {dateRange && <CountNumber startDate={dateRange[0]} endDate={dateRange[1]} dataType="views"  onDataLoaded={() => handleDataLoaded("isCountNumber")} />}
+          {dateRange && <CountNumber startDate={dateRange[0]} endDate={dateRange[1]} dataType="website_clicks"  onDataLoaded={() => handleDataLoaded("isCountNumber")} />}
+          {dateRange && <CountNumber startDate={dateRange[0]} endDate={dateRange[1]} dataType="profile_views"  onDataLoaded={() => handleDataLoaded("isCountNumber")} />}
+          {dateRange && <CountNumber startDate={dateRange[0]} endDate={dateRange[1]} dataType="total_interactions"  onDataLoaded={() => handleDataLoaded("isCountNumber")} />}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
           <div className="lg:col-span-3">
-            {dateRange && <FollowersChart startDate={dateRange[0]} endDate={dateRange[1]} onDataLoaded={() => handleDataLoaded("isFollowersChart")} />}
+            {dateRange && <LineChart startDate={dateRange[0]} endDate={dateRange[1]} onDataLoaded={() => handleDataLoaded("isLineChart")} />}
           </div>
           <div className="lg:col-span-2">
             <SexRatioChart onDataLoaded={() => handleDataLoaded("isSexRatioChart")} />

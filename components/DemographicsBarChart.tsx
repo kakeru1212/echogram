@@ -71,7 +71,7 @@ const VerticalRectangle = (props: any) => {
 export default function DemographicsBarChart({ onDataLoaded }: { onDataLoaded?: () => void }) {
   const { user } = useUser();
   const userId = user?.id || null;
-  const [selectedPeriod, setSelectedPeriod] = useState<"week" | "month">("week");
+  const [selectedPeriod, setSelectedPeriod] = useState<"week" | "month">("month");
   const dataType = `follower_demographics_${selectedPeriod}`;
   const [chartData, setChartData] = useState<any>([]);
   const [error, setError] = useState<string | null>(null);
@@ -95,7 +95,7 @@ export default function DemographicsBarChart({ onDataLoaded }: { onDataLoaded?: 
         if (!json || !json.data || json.length === 0) {
           throw new Error('APIから有効なデータが返されませんでした。');
         }
-        const results = json.data[0][0].jsonData.total_value.breakdowns[0].results;
+        const results = json.data.requestData.total_value.breakdowns[0].results;
         const ageGroups = ["18-24", "25-34", "35-44", "45-54", "55-64", "65+"];
 
         const data = ageGroups.map((age) => {
@@ -154,8 +154,8 @@ export default function DemographicsBarChart({ onDataLoaded }: { onDataLoaded?: 
             }
             className="px-3 py-1 border border-gray-300 rounded"
           >
-            <option value="week">今週</option>
             <option value="month">今月</option>
+            <option value="week">今週</option>
           </select>
         </div>
       </div>
@@ -182,7 +182,7 @@ export default function DemographicsBarChart({ onDataLoaded }: { onDataLoaded?: 
               hide={!activeBars.includes(gender)}
               shape={<VerticalRectangle animationDuration={800} animationBegin={0} />}
             >
-              {chartData.map((entry, index) => (
+              {chartData.map((_: unknown, index: number) => (
                 <Cell key={`cell-${index}`} fill={GENDER_COLORS[gender]} />
               ))}
             </Bar>
