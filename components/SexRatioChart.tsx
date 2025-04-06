@@ -6,7 +6,13 @@ import { PieChart, Pie, Sector, Cell, ResponsiveContainer } from 'recharts';
 
 const COLORS = ['#f16b65', '#5faff1', '#bababa'];
 
+interface ResultEntry {
+  dimension_values: string[];
+  value: number;
+}
+
 // カスタムアクティブシェイプ（ホバー時に中央に情報を表示）
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderActiveShape = (props: any) => {
   const {
     cx, cy, innerRadius, outerRadius, startAngle, endAngle,
@@ -65,7 +71,7 @@ export default function SexRatioChart({ onDataLoaded }: { onDataLoaded?: () => v
     setInnerRadius(Math.max(10, windowSize * 0.1));
     setOuterRadius(Math.max(30, windowSize * 0.15));
   };
-  
+
   useEffect(() => {
     updateRadius(); // 初回レンダリング時に呼び出し
     window.addEventListener('resize', updateRadius); // リサイズイベントをリスン
@@ -81,7 +87,7 @@ export default function SexRatioChart({ onDataLoaded }: { onDataLoaded?: () => v
         if (onDataLoaded) onDataLoaded();
         return;
       }
-        
+
       try {
         const response = await fetch(
           `/api/instagram/retrieve/instagram_data?user_id=${userId}&data_type=follower_demographics_month`
@@ -98,8 +104,8 @@ export default function SexRatioChart({ onDataLoaded }: { onDataLoaded?: () => v
         // 性別ごとの合計を計算
         const genderCounts: Record<string, number> = { F: 0, M: 0, U: 0 };
 
-        results.forEach((entry: any) => {
-          const gender = entry.dimension_values[1]; // "F", "M", "U"
+        results.forEach((entry: ResultEntry) => {
+          const gender = entry.dimension_values[1];
           genderCounts[gender] = (genderCounts[gender] || 0) + entry.value;
         });
 
@@ -116,9 +122,9 @@ export default function SexRatioChart({ onDataLoaded }: { onDataLoaded?: () => v
       }
     }
     fetchData();
-  }, [userId]);
+  }, [userId, onDataLoaded]);
 
-  const onPieEnter = (_: any, index: number) => {
+  const onPieEnter = (_: unknown, index: number) => {
     setActiveIndex(index);
   };
 

@@ -24,10 +24,16 @@ type DataTypeOption = {
   label: string;
 };
 
+interface ChartDataPoint {
+  date: string;
+  value: number;
+  displayDate: string;
+}
+
 export default function LineChart({ startDate, endDate, onDataLoaded }: Props) {
   const { user } = useUser();
   const userId = user?.id || null;
-  const [chartData, setChartData] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [dataType, setDataType] = useState<string>("business_discovery");
 
@@ -98,7 +104,7 @@ export default function LineChart({ startDate, endDate, onDataLoaded }: Props) {
     }
 
     fetchChartData();
-  }, [userId, startDate, endDate, dataType]);
+  }, [userId, startDate, endDate, dataType, onDataLoaded]);
 
   const yAxisProps = () => {
     if (chartData.length === 0) return { domain: [0, 0], ticks: [0] };

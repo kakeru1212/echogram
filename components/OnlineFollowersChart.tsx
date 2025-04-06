@@ -37,19 +37,34 @@ interface TransformedData {
   end_time: string;
 }
 
+interface ChartDataPoint {
+  hourGroup: number;
+  day: number;
+  startHour: number;
+  subHourInGroup: number;
+  count: number;
+  hoursData: Record<string, number>;
+  averageFollowers: number;
+}
+
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    payload: ChartDataPoint;
+  }>;
+}
+
 /**
  * オンラインフォロワーデータの時間帯を調整する関数
  * 元データの8時〜23時を0時〜15時に、0時〜7時を16時〜23時に変換します
  */
 function transformOnlineFollowersData(originalData: OriginalData[]): TransformedData[] {
-  // 最初と最後のデータを除くと変換できないため、少なくとも2日分以上のデータが必要
   if (originalData.length < 2) {
     return [];
   }
 
   const result: TransformedData[] = [];
 
-  // 最初のデータと最後のデータを除いて処理する
   for (let i = 0; i < originalData.length - 1; i++) {
     const currentDay = originalData[i];
     const nextDay = originalData[i + 1];
@@ -80,7 +95,7 @@ export default function OnlineFollowersBubbleChart({ onDataLoaded }: { onDataLoa
   const { user } = useUser();
   const userId = user?.id || null;
   const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<ChartDataPoint[]>([]);
 
   useEffect(() => {
     if (!userId) {
@@ -102,7 +117,7 @@ export default function OnlineFollowersBubbleChart({ onDataLoaded }: { onDataLoa
         }
         const results = transformOnlineFollowersData(json.data.requestData.values);
 
-        const chartData = results.map((dayEntry: any) => {
+        const chartData = results.map((dayEntry: TransformedData) => {
           const date = new Date(dayEntry.end_time);
           let dayIndex = date.getDay();
           if (dayIndex !== 0) {
@@ -138,10 +153,10 @@ export default function OnlineFollowersBubbleChart({ onDataLoaded }: { onDataLoa
       }
     }
     fetchData();
-  }, [userId]);
+  }, [userId, onDataLoaded]);
 
   // カスタムTooltipコンポーネント
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: TooltipProps) => {
     if (active && payload && payload.length) {
       const point = payload[0].payload;
       const hoursData = point.hoursData || {};

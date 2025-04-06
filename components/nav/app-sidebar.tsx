@@ -1,12 +1,13 @@
 "use client"
 
 import type * as React from "react"
-import { LuLayoutDashboard, LuCalendarRange, LuSend, LuUserRoundSearch } from "react-icons/lu";
-import { FaUserCircle } from "react-icons/fa";
+import { LuLayoutDashboard } from "react-icons/lu";
+// import { LuLayoutDashboard, LuCalendarRange, LuSend, LuUserRoundSearch } from "react-icons/lu";
+// import { FaUserCircle } from "react-icons/fa";
 import { BsGrid3X3GapFill } from "react-icons/bs";
-import { MdOutlineHelpCenter } from "react-icons/md";
+// import { MdOutlineHelpCenter } from "react-icons/md";
 import { AiOutlineSetting } from "react-icons/ai";
-import { BiCodeAlt } from "react-icons/bi";
+// import { BiCodeAlt } from "react-icons/bi";
 import { NavMain } from "./nav-main"
 import { NavSecondary } from "./nav-secondary"
 import { NavUser } from "./nav-user"

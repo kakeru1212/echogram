@@ -25,7 +25,7 @@ export default function CountNumber({ startDate, endDate, dataType, onDataLoaded
   const { user } = useUser();
   const userId = user?.id || null;
   const [error, setError] = useState<string | null>(null);
-  const [value, setvalue] = useState<number>(0);
+  const [value, setValue] = useState<number>(0);
   const dataTypeOptions: DataTypeOption[] = [
     { value: "business_discovery", label: "フォロワー数" },
     { value: "reach", label: "リーチ数" },
@@ -42,7 +42,7 @@ export default function CountNumber({ startDate, endDate, dataType, onDataLoaded
   useEffect(() => {
     async function fetchChartData() {
       if (!userId || !startDate || !endDate) {
-        setvalue(0);
+        setValue(0);
         if (onDataLoaded) onDataLoaded();
         return;
       }
@@ -80,10 +80,10 @@ export default function CountNumber({ startDate, endDate, dataType, onDataLoaded
 
         if (dataType === "business_discovery") {
           const lastEntry = results.length > 0 ? results[results.length - 1] : 0;
-          setvalue(lastEntry.requestData);
+          setValue(lastEntry.requestData);
         } else {
           const totalValue = results.reduce((sum: number, item: { requestData: number }) => sum + item.requestData, 0);
-          setvalue(totalValue);
+          setValue(totalValue);
         }
 
       } catch (error) {
@@ -95,7 +95,7 @@ export default function CountNumber({ startDate, endDate, dataType, onDataLoaded
     }
 
     fetchChartData();
-  }, [userId, startDate, endDate]);
+  }, [userId, startDate, endDate, dataType, onDataLoaded]);
 
   if (error) return <div className="w-auto h-full dashboard-bg ">Error: {error}</div>;
 

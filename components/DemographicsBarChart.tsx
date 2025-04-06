@@ -12,6 +12,7 @@ import {
   Legend,
   ResponsiveContainer,
   Cell,
+  BarProps,
 } from 'recharts';
 
 const GENDER_KEYS = ["F", "M", "U"];
@@ -26,8 +27,18 @@ const GENDER_COLORS: Record<string, string> = {
   U: "rgb(186, 186, 186, 0.6)",  // 不明
 };
 
+interface VerticalRectangleProps {
+  fill: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  animationDuration: number;
+  animationBegin: number;
+}
+
 // カスタムアニメーション用のシェイプを定義
-const VerticalRectangle = (props: any) => {
+const VerticalRectangle = (props: VerticalRectangleProps) => {
   const { fill, x, y, width, height, animationDuration, animationBegin } = props;
   return (
     <rect
@@ -68,14 +79,36 @@ const VerticalRectangle = (props: any) => {
   );
 };
 
+interface ChartDataEntry {
+  age: string;
+  [key: string]: string | number;
+}
+
+interface ResultData {
+  dimension_values: string[];
+  value: number;
+}
+
 export default function DemographicsBarChart({ onDataLoaded }: { onDataLoaded?: () => void }) {
   const { user } = useUser();
   const userId = user?.id || null;
   const [selectedPeriod, setSelectedPeriod] = useState<"week" | "month">("month");
   const dataType = `follower_demographics_${selectedPeriod}`;
-  const [chartData, setChartData] = useState<any>([]);
+  const [chartData, setChartData] = useState<ChartDataEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [activeBars, setActiveBars] = useState<string[]>(["F", "M", "U"]);
+
+  // RechartsのLegendコンポーネントのonClickプロパティに渡されるイベントの型
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleLegendClick = (e: any) => {
+    const { dataKey } = e;
+    if (!dataKey) return;
+    if (activeBars.includes(dataKey.toString())) {
+      setActiveBars(activeBars.filter((key) => key !== dataKey.toString()));
+    } else {
+      setActiveBars([...activeBars, dataKey.toString()]);
+    }
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -99,10 +132,10 @@ export default function DemographicsBarChart({ onDataLoaded }: { onDataLoaded?: 
         const ageGroups = ["18-24", "25-34", "35-44", "45-54", "55-64", "65+"];
 
         const data = ageGroups.map((age) => {
-          const entry: any = { age };
+          const entry: ChartDataEntry = { age, F: 0, M: 0, U: 0 };
           GENDER_KEYS.forEach((gender) => {
             const result = results.find(
-              (r: any) =>
+              (r: ResultData) =>
                 r.dimension_values[0] === age && r.dimension_values[1] === gender
             );
             entry[gender] = result ? result.value : 0;
@@ -119,18 +152,8 @@ export default function DemographicsBarChart({ onDataLoaded }: { onDataLoaded?: 
       }
     }
     fetchData();
-  }, [userId, dataType]);
+  }, [userId, dataType, onDataLoaded]);
 
-  const handleLegendClick = (e: any) => {
-    const { dataKey } = e;
-    if (activeBars.includes(dataKey)) {
-      setActiveBars(activeBars.filter((key) => key !== dataKey));
-    } else {
-      setActiveBars([...activeBars, dataKey]);
-    }
-  };
-
-  // CSS for the vertical animation
   const animationStyle = `
     @keyframes growVertically {
       from { transform: scaleY(0); }
@@ -143,7 +166,6 @@ export default function DemographicsBarChart({ onDataLoaded }: { onDataLoaded?: 
   return (
     <div className="dashboard-bg">
       <style>{animationStyle}</style>
-      {/* タイトル部分：左側にタイトル、右上にプルダウン */}
       <div className="flex justify-between items-center mb-4">
         <div className="text-lg font-semibold">年齢・性別分布</div>
         <div>
@@ -180,7 +202,20 @@ export default function DemographicsBarChart({ onDataLoaded }: { onDataLoaded?: 
               animationDuration={0}
               animationBegin={0}
               hide={!activeBars.includes(gender)}
-              shape={<VerticalRectangle animationDuration={800} animationBegin={0} />}
+              shape={(props: BarProps) => {
+                const { fill = '', x = 0, y = 0, width = 0, height = 0 } = props;
+                return (
+                  <VerticalRectangle
+                    fill={fill}
+                    x={Number(x) || 0}
+                    y={Number(y) || 0}
+                    width={Number(width) || 0}
+                    height={Number(height) || 0}
+                    animationDuration={800}
+                    animationBegin={0}
+                  />
+                );
+              }}
             >
               {chartData.map((_: unknown, index: number) => (
                 <Cell key={`cell-${index}`} fill={GENDER_COLORS[gender]} />
