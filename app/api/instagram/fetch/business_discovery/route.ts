@@ -12,6 +12,24 @@ const dbConfig = {
 	},
 };
 
+function validateAccessToken(req: NextRequest): boolean {
+  const validToken = process.env.API_ACCESS_TOKEN;
+
+  if (!validToken) {
+    console.error("API_ACCESS_TOKEN is not set in environment variables");
+    return false;
+  }
+
+  const authHeader = req.headers.get('Authorization');
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return false;
+  }
+
+  const token = authHeader.split(' ')[1];
+  return token === validToken;
+}
+
 export async function GET(req: NextRequest) {
 	try {
 		const version = process.env.INSTAGRAM_VERSION;
@@ -19,6 +37,13 @@ export async function GET(req: NextRequest) {
 		const user_id = searchParams.get("user_id");
 		const instagram_username = searchParams.get("instagram_username");
 		const fields = searchParams.get("fields");
+
+    if (!validateAccessToken(req)) {
+      return NextResponse.json(
+        { error: "無効なアクセストークンです" },
+        { status: 401 }
+      );
+    }
 
 		if (!user_id) {
 			return NextResponse.json({ error: "user_id is required" }, { status: 400 });

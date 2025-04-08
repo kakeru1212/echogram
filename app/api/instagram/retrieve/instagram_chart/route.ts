@@ -12,6 +12,24 @@ const dbConfig = {
   },
 };
 
+function validateAccessToken(req: NextRequest): boolean {
+  const validToken = process.env.API_ACCESS_TOKEN;
+
+  if (!validToken) {
+    console.error("API_ACCESS_TOKEN is not set in environment variables");
+    return false;
+  }
+
+  const authHeader = req.headers.get('Authorization');
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return false;
+  }
+
+  const token = authHeader.split(' ')[1];
+  return token === validToken;
+}
+
 // DB接続して指定期間のinstagram_chartを取得
 export async function GET(req: NextRequest) {
   try {
@@ -20,6 +38,13 @@ export async function GET(req: NextRequest) {
     const dataType = searchParams.get("data_type");
     const startDate = searchParams.get("start_date");
     const endDate = searchParams.get("end_date");
+    
+    if (!validateAccessToken(req)) {
+      return NextResponse.json(
+        { error: "無効なアクセストークンです" },
+        { status: 401 }
+      );
+    }
 
     if (!user_id || !dataType || !startDate || !endDate) {
       return NextResponse.json(

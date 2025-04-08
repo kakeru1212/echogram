@@ -1,8 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Next.jsの設定を追加して動的ルートであることを明示
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+function validateAccessToken(req: NextRequest): boolean {
+  const validToken = process.env.API_ACCESS_TOKEN;
+
+  if (!validToken) {
+    console.error("API_ACCESS_TOKEN is not set in environment variables");
+    return false;
+  }
+
+  const authHeader = req.headers.get('Authorization');
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return false;
+  }
+
+  const token = authHeader.split(' ')[1];
+  return token === validToken;
+}
 
 // 接続テスト
 export async function GET(req: NextRequest) {
@@ -12,6 +26,13 @@ export async function GET(req: NextRequest) {
 		const instagram_username = searchParams.get("instagram_username");
 		const user_id = searchParams.get("user_id");
 		const access_token = searchParams.get("access_token");
+
+    if (!validateAccessToken(req)) {
+      return NextResponse.json(
+        { error: "無効なアクセストークンです" },
+        { status: 401 }
+      );
+    }
 
 		if (!instagram_username) {
 			return NextResponse.json({ error: "Instagram Username is required" }, { status: 400 });

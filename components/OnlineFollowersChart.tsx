@@ -98,16 +98,23 @@ export default function OnlineFollowersBubbleChart({ onDataLoaded }: { onDataLoa
   const [data, setData] = useState<ChartDataPoint[]>([]);
 
   useEffect(() => {
-    if (!userId) {
-      if (onDataLoaded) onDataLoaded();
-      return;
-    }
-
     async function fetchData() {
+      if (!userId) {
+        if (onDataLoaded) onDataLoaded();
+        return;
+      }
+
       try {
+        const apiAccessToken = process.env.NEXT_PUBLIC_API_ACCESS_TOKEN;
         const response = await fetch(
-          `/api/instagram/retrieve/instagram_data?user_id=${userId}&data_type=online_followers`
+          `/api/instagram/retrieve/instagram_data?user_id=${userId}&data_type=online_followers`,
+          {
+            headers: {
+              "Authorization": `Bearer ${apiAccessToken}`,
+            },
+          }
         );
+
         if (!response.ok) {
           throw new Error('データの取得に失敗しました。');
         }

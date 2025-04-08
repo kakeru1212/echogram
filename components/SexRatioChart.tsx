@@ -11,7 +11,6 @@ interface ResultEntry {
   value: number;
 }
 
-// カスタムアクティブシェイプ（ホバー時に中央に情報を表示）
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderActiveShape = (props: any) => {
   const {
@@ -21,7 +20,6 @@ const renderActiveShape = (props: any) => {
 
   return (
     <g>
-      {/* 円グラフのセクター */}
       <Sector
         cx={cx}
         cy={cy}
@@ -41,7 +39,6 @@ const renderActiveShape = (props: any) => {
         fill={fill}
       />
 
-      {/* 中央のラベル（性別・パーセンテージ・人数） */}
       <text x={cx} y={cy * 0.85} textAnchor="middle" fill={fill} fontSize={20} fontWeight="bold">
         {payload.name}
       </text>
@@ -73,11 +70,11 @@ export default function SexRatioChart({ onDataLoaded }: { onDataLoaded?: () => v
   };
 
   useEffect(() => {
-    updateRadius(); // 初回レンダリング時に呼び出し
-    window.addEventListener('resize', updateRadius); // リサイズイベントをリスン
+    updateRadius();
+    window.addEventListener('resize', updateRadius);
 
     return () => {
-      window.removeEventListener('resize', updateRadius); // クリーンアップ
+      window.removeEventListener('resize', updateRadius);
     };
   }, []);
 
@@ -89,8 +86,15 @@ export default function SexRatioChart({ onDataLoaded }: { onDataLoaded?: () => v
       }
 
       try {
+        const apiAccessToken = process.env.NEXT_PUBLIC_API_ACCESS_TOKEN;
+        console.log(apiAccessToken)
         const response = await fetch(
-          `/api/instagram/retrieve/instagram_data?user_id=${userId}&data_type=follower_demographics_month`
+          `/api/instagram/retrieve/instagram_data?user_id=${userId}&data_type=follower_demographics_month`,
+          {
+            headers: {
+              "Authorization": `Bearer ${apiAccessToken}`,
+            },
+          }
         );
         if (!response.ok) {
           throw new Error('データの取得に失敗しました。');
@@ -101,7 +105,6 @@ export default function SexRatioChart({ onDataLoaded }: { onDataLoaded?: () => v
         }
         const results = json.data.requestData.total_value.breakdowns[0].results;
 
-        // 性別ごとの合計を計算
         const genderCounts: Record<string, number> = { F: 0, M: 0, U: 0 };
 
         results.forEach((entry: ResultEntry) => {
@@ -145,8 +148,8 @@ export default function SexRatioChart({ onDataLoaded }: { onDataLoaded?: () => v
             outerRadius={outerRadius}
             fill="#8884d8"
             dataKey="value"
-            startAngle={90}   // 12時の方向を開始位置に設定
-            endAngle={-270}   // 時計回りに描画
+            startAngle={90}
+            endAngle={-270}
             onMouseEnter={onPieEnter}
           >
             {data.map((entry, index) => (

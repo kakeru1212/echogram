@@ -98,7 +98,6 @@ export default function DemographicsBarChart({ onDataLoaded }: { onDataLoaded?: 
   const [error, setError] = useState<string | null>(null);
   const [activeBars, setActiveBars] = useState<string[]>(["F", "M", "U"]);
 
-  // RechartsのLegendコンポーネントのonClickプロパティに渡されるイベントの型
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleLegendClick = (e: any) => {
     const { dataKey } = e;
@@ -118,8 +117,14 @@ export default function DemographicsBarChart({ onDataLoaded }: { onDataLoaded?: 
       }
 
       try {
+        const apiAccessToken = process.env.NEXT_PUBLIC_API_ACCESS_TOKEN;
         const response = await fetch(
-          `/api/instagram/retrieve/instagram_data?user_id=${userId}&data_type=${dataType}`
+          `/api/instagram/retrieve/instagram_data?user_id=${userId}&data_type=${dataType}`,
+          {
+            headers: {
+              "Authorization": `Bearer ${apiAccessToken}`,
+            },
+          }
         );
         if (!response.ok) {
           throw new Error('データの取得に失敗しました。');

@@ -49,9 +49,15 @@ export default function CountNumber({ startDate, endDate, dataType, onDataLoaded
 
       try {
         let response;
+        const apiAccessToken = process.env.NEXT_PUBLIC_API_ACCESS_TOKEN;
         if (dataType === "business_discovery") {
           const igUsernameResponse = await fetch(
-            `/api/instagram/retrieve/username?user_id=${userId}`
+            `/api/instagram/retrieve/username?user_id=${userId}`,
+            {
+              headers: {
+                "Authorization": `Bearer ${apiAccessToken}`,
+              },
+            }
           );
           const igUsernameJson = await igUsernameResponse.json();
           if (!igUsernameResponse.ok) {
@@ -60,12 +66,21 @@ export default function CountNumber({ startDate, endDate, dataType, onDataLoaded
           const igUsername = igUsernameJson.instagram_username;
 
           response = await fetch(
-
-            `/api/instagram/retrieve/business_discovery?user_id=${userId}&instagram_username=${igUsername}&start_date=${startDate}&end_date=${endDate}`
+            `/api/instagram/retrieve/business_discovery?user_id=${userId}&instagram_username=${igUsername}&start_date=${startDate}&end_date=${endDate}`,
+            {
+              headers: {
+                "Authorization": `Bearer ${apiAccessToken}`,
+              },
+            }
           );
         } else {
           response = await fetch(
-            `/api/instagram/retrieve/instagram_chart?user_id=${userId}&data_type=${dataType}&start_date=${startDate}&end_date=${endDate}`
+            `/api/instagram/retrieve/instagram_chart?user_id=${userId}&data_type=${dataType}&start_date=${startDate}&end_date=${endDate}`,
+            {
+              headers: {
+                "Authorization": `Bearer ${apiAccessToken}`,
+              },
+            }
           );
         }
 

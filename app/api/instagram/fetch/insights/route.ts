@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import mysql, { RowDataPacket } from "mysql2/promise";
 import { format, toZonedTime } from "date-fns-tz";
 
@@ -13,6 +13,24 @@ const dbConfig = {
 		rejectUnauthorized: true,
 	},
 };
+
+function validateAccessToken(req: NextRequest): boolean {
+  const validToken = process.env.API_ACCESS_TOKEN;
+
+  if (!validToken) {
+    console.error("API_ACCESS_TOKEN is not set in environment variables");
+    return false;
+  }
+
+  const authHeader = req.headers.get('Authorization');
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return false;
+  }
+
+  const token = authHeader.split(' ')[1];
+  return token === validToken;
+}
 
 // 今日から指定した日数前の日付を取得する関数
 function getDateDaysAgo(days: number) {
@@ -31,41 +49,40 @@ interface InstagramUser extends RowDataPacket {
 
 // 各ユーザーのInstagramデータを取得する関数
 async function fetchAndSaveInstagramData(connection: mysql.Connection, user: InstagramUser) {
-	const { user_id, instagram_username, instagram_user_id, access_token } = user;
-	const version = process.env.INSTAGRAM_VERSION;
-
-	// フォロワーの人口統計学的特性（follower_demographics）
-	const demographicsWeekUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=follower_demographics&period=lifetime&timeframe=this_week&metric_type=total_value&breakdown=age,gender&access_token=${access_token}`;
-	const demographicsMonthUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=follower_demographics&period=lifetime&timeframe=this_month&metric_type=total_value&breakdown=age,gender&access_token=${access_token}`;
-
-	// オンラインのフォロワー数（online_followers）
-	const fourWeekSinceDate = getDateDaysAgo(10); // 初日を含む1週間+1日
-	const fourWeekUntilDate = getDateDaysAgo(2);
-	const onlineFollowersUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=online_followers&period=lifetime&timeframe=this_month&since=${fourWeekSinceDate}&until=${fourWeekUntilDate}&access_token=${access_token}`;
-
-	const sinceDate = getDateDaysAgo(3);
-	const untilDate = getDateDaysAgo(2);
-
-	// リーチしたアカウント数（reach）
-	const reachUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=reach&period=day&metric_type=total_value&breakdown=media_product_type&since=${sinceDate}&until=${untilDate}&access_token=${access_token}`;
-
-	// 閲覧数（views）
-	const viewsUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=views&period=day&metric_type=total_value&breakdown=media_product_type&since=${sinceDate}&until=${untilDate}&access_token=${access_token}`;
-
-	// 外部リンクのタップ数（website_clicks）
-	const websiteClicksUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=website_clicks&period=day&metric_type=total_value&since=${sinceDate}&until=${untilDate}&access_token=${access_token}`;
-
-	// プロフィールへのアクセス数（profile_views）
-	const profileViewsUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=profile_views&period=day&metric_type=total_value&since=${sinceDate}&until=${untilDate}&access_token=${access_token}`;
-
-	// インタラクション数（いいね、コメント、シェアなどを含む）（total_interactions）
-	const totalInteractionsUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=total_interactions&period=day&metric_type=total_value&breakdown=media_product_type&since=${sinceDate}&until=${untilDate}&access_token=${access_token}`;
-
-	// フォロワー数、メディア数（business_discovery）
-	const businessDiscoveryUrl = `https://graph.facebook.com/${version}/${instagram_user_id}?fields=business_discovery.username(${instagram_username}){followers_count,media_count}&access_token=${access_token}`;
-
-
 	try {
+		const { user_id, instagram_username, instagram_user_id, access_token } = user;
+		const version = process.env.INSTAGRAM_VERSION;
+
+		// フォロワーの人口統計学的特性（follower_demographics）
+		const demographicsWeekUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=follower_demographics&period=lifetime&timeframe=this_week&metric_type=total_value&breakdown=age,gender&access_token=${access_token}`;
+		const demographicsMonthUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=follower_demographics&period=lifetime&timeframe=this_month&metric_type=total_value&breakdown=age,gender&access_token=${access_token}`;
+
+		// オンラインのフォロワー数（online_followers）
+		const fourWeekSinceDate = getDateDaysAgo(10); // 初日を含む1週間+1日
+		const fourWeekUntilDate = getDateDaysAgo(2);
+		const onlineFollowersUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=online_followers&period=lifetime&timeframe=this_month&since=${fourWeekSinceDate}&until=${fourWeekUntilDate}&access_token=${access_token}`;
+
+		const sinceDate = getDateDaysAgo(3);
+		const untilDate = getDateDaysAgo(2);
+
+		// リーチしたアカウント数（reach）
+		const reachUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=reach&period=day&metric_type=total_value&breakdown=media_product_type&since=${sinceDate}&until=${untilDate}&access_token=${access_token}`;
+
+		// 閲覧数（views）
+		const viewsUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=views&period=day&metric_type=total_value&breakdown=media_product_type&since=${sinceDate}&until=${untilDate}&access_token=${access_token}`;
+
+		// 外部リンクのタップ数（website_clicks）
+		const websiteClicksUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=website_clicks&period=day&metric_type=total_value&since=${sinceDate}&until=${untilDate}&access_token=${access_token}`;
+
+		// プロフィールへのアクセス数（profile_views）
+		const profileViewsUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=profile_views&period=day&metric_type=total_value&since=${sinceDate}&until=${untilDate}&access_token=${access_token}`;
+
+		// インタラクション数（いいね、コメント、シェアなどを含む）（total_interactions）
+		const totalInteractionsUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=total_interactions&period=day&metric_type=total_value&breakdown=media_product_type&since=${sinceDate}&until=${untilDate}&access_token=${access_token}`;
+
+		// フォロワー数、メディア数（business_discovery）
+		const businessDiscoveryUrl = `https://graph.facebook.com/${version}/${instagram_user_id}?fields=business_discovery.username(${instagram_username}){followers_count,media_count}&access_token=${access_token}`;
+
 		const [businessDiscoveryResponse, demographicsWeekResponse, demographicsMonthResponse, onlineFollowersResponse, reachResponse, viewsResponse, websiteClicksResponse, profileViewsResponse, totalInteractionsResponse] = await Promise.all([
 			fetch(businessDiscoveryUrl),
 			fetch(demographicsWeekUrl),
@@ -177,14 +194,17 @@ async function fetchAndSaveInstagramData(connection: mysql.Connection, user: Ins
 	}
 }
 
-// Next.jsの設定を追加して動的ルートであることを明示
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
-export async function GET() {
+export async function GET(req: NextRequest) {
 	try {
 		const connection = await mysql.createConnection(dbConfig);
 
+    if (!validateAccessToken(req)) {
+      return NextResponse.json(
+        { error: "無効なアクセストークンです" },
+        { status: 401 }
+      );
+    }
+		
 		// すべてのユーザー情報を取得
 		const [rows] = await connection.execute<InstagramUser[]>(
 			"SELECT user_id, instagram_username, instagram_user_id, access_token FROM instagram_user"

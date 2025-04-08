@@ -23,7 +23,13 @@ export default function Page() {
 
   useEffect(() => {
     if (user) {
-      fetch(`/api/instagram/auth?user_id=${user.id}`)
+      const apiAccessToken = process.env.NEXT_PUBLIC_API_ACCESS_TOKEN;
+      fetch(`/api/instagram/auth?user_id=${user.id}`,
+        {
+          headers: {
+            "Authorization": `Bearer ${apiAccessToken}`,
+          },
+        })
         .then((res) => res.json())
         .then((data) => {
           if (data.instagram_user_id) {
@@ -52,9 +58,13 @@ export default function Page() {
       return;
     }
 
+    const apiAccessToken = process.env.NEXT_PUBLIC_API_ACCESS_TOKEN;
     const response = await fetch("/api/instagram/auth", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Authorization": `Bearer ${apiAccessToken}`,
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         user_id: user.id,
         instagram_user_id: instagramUserId,
@@ -100,8 +110,14 @@ export default function Page() {
       return;
     }
 
+    const apiAccessToken = process.env.NEXT_PUBLIC_API_ACCESS_TOKEN;
     const response = await fetch(
-      `/api/instagram/fetch/connect?user_id=${instagramUserId}&instagram_username=${instagramUsername}&access_token=${accessToken}`
+      `/api/instagram/fetch/connect?user_id=${instagramUserId}&instagram_username=${instagramUsername}&access_token=${accessToken}`,
+      {
+        headers: {
+          "Authorization": `Bearer ${apiAccessToken}`,
+        },
+      }
     );
     const result = await response.json();
     if (!response.ok) {

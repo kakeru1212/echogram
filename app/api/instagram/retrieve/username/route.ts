@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import mysql from "mysql2/promise";
 
-// Next.jsの設定を追加して動的ルートであることを明示
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
 const dbConfig = {
   host: process.env.DB_HOST,
   port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 4000,
@@ -16,11 +12,36 @@ const dbConfig = {
   },
 };
 
+function validateAccessToken(req: NextRequest): boolean {
+  const validToken = process.env.API_ACCESS_TOKEN;
+
+  if (!validToken) {
+    console.error("API_ACCESS_TOKEN is not set in environment variables");
+    return false;
+  }
+
+  const authHeader = req.headers.get('Authorization');
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return false;
+  }
+
+  const token = authHeader.split(' ')[1];
+  return token === validToken;
+}
+
 // DB接続してinstagram_usernameを取得
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const user_id = searchParams.get("user_id");
+
+    if (!validateAccessToken(req)) {
+      return NextResponse.json(
+        { error: "無効なアクセストークンです" },
+        { status: 401 }
+      );
+    }
 
     if (!user_id) {
       return NextResponse.json(
