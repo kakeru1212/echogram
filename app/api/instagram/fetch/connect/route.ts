@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+export const dynamic = 'force-dynamic';
+
 function validateAccessToken(req: NextRequest): boolean {
   const validToken = process.env.API_ACCESS_TOKEN;
 

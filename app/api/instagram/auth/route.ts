@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import mysql from "mysql2/promise";
 
+export const dynamic = 'force-dynamic';
+
 // TiDB 接続設定
 const dbConfig = {
   host: process.env.DB_HOST,

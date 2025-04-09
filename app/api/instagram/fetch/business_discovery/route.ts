@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import mysql from "mysql2/promise";
 
+export const dynamic = 'force-dynamic';
+
 const dbConfig = {
 	host: process.env.DB_HOST,
 	port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 4000,
