@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { useUser } from '@clerk/nextjs';
+import { useUser } from '@auth0/nextjs-auth0/client';
 import {
   BarChart,
   Bar,
@@ -91,7 +91,7 @@ interface ResultData {
 
 export default function DemographicsBarChart({ onDataLoaded }: { onDataLoaded?: () => void }) {
   const { user } = useUser();
-  const userId = user?.id || null;
+  const userId = user?.sub || null;
   const [selectedPeriod, setSelectedPeriod] = useState<"week" | "month">("month");
   const dataType = `follower_demographics_${selectedPeriod}`;
   const [chartData, setChartData] = useState<ChartDataEntry[]>([]);
@@ -116,41 +116,53 @@ export default function DemographicsBarChart({ onDataLoaded }: { onDataLoaded?: 
         return;
       }
 
+      const ageGroups = ["18-24", "25-34", "35-44", "45-54", "55-64", "65+"];
+      const initialValueData: ChartDataEntry[] = ageGroups.map(age => ({
+        age,
+        F: 0,
+        M: 0,
+        U: 0,
+      }));
+
       try {
         const apiAccessToken = process.env.NEXT_PUBLIC_API_ACCESS_TOKEN;
         const response = await fetch(
           `/api/instagram/retrieve/instagram_data?user_id=${userId}&data_type=${dataType}`,
-          {
-            headers: {
-              "Authorization": `Bearer ${apiAccessToken}`,
-            },
-          }
+          { headers: { Authorization: `Bearer ${apiAccessToken}` } }
         );
+
         if (!response.ok) {
-          throw new Error('データの取得に失敗しました。');
+          console.warn('データの取得に失敗しました。');
+          setChartData(initialValueData);
+          return;
         }
+
         const json = await response.json();
-        if (!json || !json.data || json.length === 0) {
-          throw new Error('APIから有効なデータが返されませんでした。');
+        if (!json?.data?.requestData?.total_value?.breakdowns?.[0]?.results) {
+          console.warn('APIから有効なデータが返されませんでした。');
+          setChartData(initialValueData);
+          return;
         }
-        const results = json.data.requestData.total_value.breakdowns[0].results;
-        const ageGroups = ["18-24", "25-34", "35-44", "45-54", "55-64", "65+"];
+
+        const results: ResultData[] = json.data.requestData.total_value.breakdowns[0].results;
 
         const data = ageGroups.map((age) => {
           const entry: ChartDataEntry = { age, F: 0, M: 0, U: 0 };
           GENDER_KEYS.forEach((gender) => {
-            const result = results.find(
-              (r: ResultData) =>
-                r.dimension_values[0] === age && r.dimension_values[1] === gender
+            const r = results.find(
+              (d) =>
+                d.dimension_values[0] === age &&
+                d.dimension_values[1] === gender
             );
-            entry[gender] = result ? result.value : 0;
+            entry[gender] = r ? r.value : 0;
           });
           return entry;
         });
 
         setChartData(data);
       } catch (error) {
-        console.error('データ取得エラー:', error);
+        console.error('Demographics fetch error:', error);
+        setChartData(initialValueData);
         setError("データ取得エラー");
       } finally {
         if (onDataLoaded) onDataLoaded();

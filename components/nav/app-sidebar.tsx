@@ -17,16 +17,16 @@ import {
   SidebarFooter,
   SidebarHeader,
 } from "@/components/ui/sidebar"
-import { useUser } from '@clerk/nextjs';
+import { useUser } from '@auth0/nextjs-auth0/client';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useUser();
 
   const data = {
     user: {
-      name: user?.fullName || "ゲスト",
-      email: user?.primaryEmailAddress?.emailAddress || "",
-      avatar: user?.imageUrl || "/avatar.png",
+      name: user?.name || "ゲスト",
+      email: user?.email || "",
+      avatar: user?.picture || "/avatar.png",
     },
     navMain: [
       {

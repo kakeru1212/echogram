@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!user_id || !instagram_user_id || !instagram_username || !access_token) {
-      return NextResponse.json({ error: "すべてのフィールドを入力してください" }, { status: 400 });
+      return NextResponse.json({ error: "すべての項目を入力してください" }, { status: 400 });
     }
 
     const connection = await mysql.createConnection(dbConfig);

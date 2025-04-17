@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useUser } from '@auth0/nextjs-auth0/client';
 import dayjs from "dayjs";
 import {
   AreaChart,
@@ -32,7 +32,7 @@ interface ChartDataPoint {
 
 export default function LineChart({ startDate, endDate, onDataLoaded }: Props) {
   const { user } = useUser();
-  const userId = user?.id || null;
+  const userId = user?.sub || null;
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [dataType, setDataType] = useState<string>("business_discovery");

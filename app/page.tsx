@@ -1,5 +1,6 @@
 'use client';
 
+import { useUser } from '@auth0/nextjs-auth0/client';
 import { useEffect, useState, useCallback } from "react";
 import DateRangePicker from "@/components/DateRangePicker";
 import LineChart from "@/components/LineChart";
@@ -9,8 +10,10 @@ import Header from "@/components/nav/Header";
 import OnlineFollowersChart from "@/components/OnlineFollowersChart";
 import SexRatioChart from "@/components/SexRatioChart";
 import Loading from "@/components/Loading";
+import Link from 'next/link';
 
 export default function Page() {
+  const { user, isLoading: isAuthLoading } = useUser();
   const [dateRange, setDateRange] = useState<[string, string] | null>(null);
   const [componentLoading, setComponentLoading] = useState({
     isCountNumber: true,
@@ -32,14 +35,29 @@ export default function Page() {
     }));
   }, []);
 
-  // 各チャートごとのonDataLoadedハンドラをメモ化
   const handleCountNumberLoaded = useCallback(() => handleDataLoaded("isCountNumber"), [handleDataLoaded]);
   const handleLineChartLoaded = useCallback(() => handleDataLoaded("isLineChart"), [handleDataLoaded]);
   const handleSexRatioLoaded = useCallback(() => handleDataLoaded("isSexRatioChart"), [handleDataLoaded]);
   const handleDemographicsLoaded = useCallback(() => handleDataLoaded("isDemographicsBarChart"), [handleDataLoaded]);
   const handleOnlineFollowersLoaded = useCallback(() => handleDataLoaded("isOnlineFollowersChart"), [handleDataLoaded]);
 
-  const isLoading = Object.values(componentLoading).some(loading => loading);
+  const isComponentLoading = Object.values(componentLoading).some(loading => loading);
+
+  if (isAuthLoading || initialLoading) {
+    return (
+      <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50 backdrop-blur-sm">
+        <Loading />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex justify-center items-center h-screen text-xl">
+        <Link href="/api/auth/login" className="text-blue-500 underline">ログインしてください</Link>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden mx-12 my-8">
@@ -87,7 +105,7 @@ export default function Page() {
         </div>
       </div>
 
-      {(isLoading || initialLoading) && (
+      {isComponentLoading && (
         <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50 backdrop-blur-sm">
           <Loading />
         </div>

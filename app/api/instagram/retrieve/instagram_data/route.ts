@@ -63,10 +63,11 @@ export async function GET(req: NextRequest) {
     await connection.end();
 
     if (!Array.isArray(rows) || rows.length === 0) {
-      return NextResponse.json(
-        { error: "Data not found", user_id, data_type },
-        { status: 404 }
-      );
+      return NextResponse.json({
+        error: "Data not found",
+        user_id,
+        data_type
+      }, { status: 404 });
     }
 
     return NextResponse.json({

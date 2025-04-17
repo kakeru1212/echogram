@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import type { StatisticProps } from 'antd';
 import { Col, Row, Statistic } from 'antd';
 import CountUp from 'react-countup';
-import { useUser } from "@clerk/nextjs";
-
+import { useUser } from '@auth0/nextjs-auth0/client';
 
 const formatter: StatisticProps['formatter'] = (value) => (
   <CountUp end={value as number} separator="," />
@@ -23,7 +22,7 @@ type DataTypeOption = {
 
 export default function CountNumber({ startDate, endDate, dataType, onDataLoaded }: Props) {
   const { user } = useUser();
-  const userId = user?.id || null;
+  const userId = user?.sub || null;
   const [error, setError] = useState<string | null>(null);
   const [value, setValue] = useState<number>(0);
   const dataTypeOptions: DataTypeOption[] = [

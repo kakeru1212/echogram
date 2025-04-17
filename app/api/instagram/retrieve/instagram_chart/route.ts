@@ -63,12 +63,14 @@ export async function GET(req: NextRequest) {
        ORDER BY retrieved_at`,
       [user_id, dataType, startDate, endDate]
     );
-
     await connection.end();
 
     return NextResponse.json({ data: response }, { status: 200 });
   } catch (error) {
-    console.error("error:", error);
-    return NextResponse.json({ error: "データ取得に失敗しました" }, { status: 500 });
+    console.error("Error in GET handler:", error);
+    return NextResponse.json(
+      { error: "データ取得に失敗しました", details: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
   }
 }

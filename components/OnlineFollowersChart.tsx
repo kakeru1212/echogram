@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useUser } from '@clerk/nextjs';
+import React, { useEffect, useRef, useState } from 'react';
+import { useUser } from '@auth0/nextjs-auth0/client';
 import {
   ResponsiveContainer,
   ScatterChart,
@@ -93,9 +93,11 @@ function transformOnlineFollowersData(originalData: OriginalData[]): Transformed
 
 export default function OnlineFollowersBubbleChart({ onDataLoaded }: { onDataLoaded?: () => void }) {
   const { user } = useUser();
-  const userId = user?.id || null;
+  const userId = user?.sub || null;
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<ChartDataPoint[]>([]);
+
+  const initialValueData = useRef<ChartDataPoint[]>([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -116,15 +118,20 @@ export default function OnlineFollowersBubbleChart({ onDataLoaded }: { onDataLoa
         );
 
         if (!response.ok) {
-          throw new Error('データの取得に失敗しました。');
+          console.warn('データの取得に失敗しました。');
+          setData(initialValueData.current);
+          return;
         }
-        const json = await response.json();
-        if (!json || !json.data || json.length === 0) {
-          throw new Error('APIから有効なデータが返されませんでした。');
-        }
-        const results = transformOnlineFollowersData(json.data.requestData.values);
 
-        const chartData = results.map((dayEntry: TransformedData) => {
+        const json = await response.json();
+        if (!json?.data?.requestData?.values || !Array.isArray(json.data.requestData.values)) {
+          console.warn('APIから有効なデータが返されませんでした。');
+          setData(initialValueData.current);
+          return;
+        }
+
+        const transformed = transformOnlineFollowersData(json.data.requestData.values as OriginalData[]);
+        const chartData = transformed.flatMap(dayEntry => {
           const date = new Date(dayEntry.end_time);
           let dayIndex = date.getDay();
           if (dayIndex !== 0) {
@@ -154,6 +161,7 @@ export default function OnlineFollowersBubbleChart({ onDataLoaded }: { onDataLoa
         setData(chartData);
       } catch (error) {
         console.error('データ取得エラー:', error);
+        setData(initialValueData.current);
         setError("データ取得エラー");
       } finally {
         if (onDataLoaded) onDataLoaded();
@@ -172,14 +180,14 @@ export default function OnlineFollowersBubbleChart({ onDataLoaded }: { onDataLoa
       return (
         <div className="bg-white p-4 border rounded shadow-lg">
           <p className="font-bold mb-2">
-            {dayMapping[point.day]}曜日 {point.startHour}~{point.startHour + 3}時
+            {dayMapping[point.day]}曜日 {point.startHour}-{point.startHour + 3}時
           </p>
           <p>平均：{averageFollowers}人</p>
           {[0, 1, 2].map((offset) => {
             const hour = point.startHour + offset;
             return (
               <p key={hour}>
-                {hour}~{hour + 1}時：{hoursData[hour] || 0}人
+                {hour}-{hour + 1}時：{hoursData[hour] || 0}人
               </p>
             );
           })}
@@ -203,7 +211,7 @@ export default function OnlineFollowersBubbleChart({ onDataLoaded }: { onDataLoa
             domain={[0, 7]}
             tickCount={8}
             tickFormatter={(tick) => {
-              const labels = ["0~3", "3~6", "6~9", "9~12", "12~15", "15~18", "18~21", "21~24"];
+              const labels = ["0-3", "3-6", "6-9", "9-12", "12-15", "15-18", "18-21", "21-24"];
               return labels[tick];
             }}
             axisLine={false}

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { UserProfile } from "@clerk/clerk-react";
 
 const ProfileModal = () => {
   const [showProfile, setShowProfile] = useState(false);
@@ -23,7 +22,6 @@ const ProfileModal = () => {
             >
               ×
             </button>
-            <UserProfile />
           </div>
         </div>
       )}

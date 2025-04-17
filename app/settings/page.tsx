@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { UserProfile, useUser } from "@clerk/nextjs";
+import { useUser } from '@auth0/nextjs-auth0/client';
 import Header from '@/components/nav/Header';
 import { FaInstagram } from "react-icons/fa";
 import { FiEye, FiEyeOff } from "react-icons/fi";
@@ -24,7 +24,7 @@ export default function Page() {
   useEffect(() => {
     if (user) {
       const apiAccessToken = process.env.NEXT_PUBLIC_API_ACCESS_TOKEN;
-      fetch(`/api/instagram/auth?user_id=${user.id}`,
+      fetch(`/api/instagram/auth?user_id=${user.sub}`,
         {
           headers: {
             "Authorization": `Bearer ${apiAccessToken}`,
@@ -58,15 +58,15 @@ export default function Page() {
       return;
     }
 
-    const apiAccessToken = process.env.NEXT_PUBLIC_API_ACCESS_TOKEN;
-    const response = await fetch("/api/instagram/auth", {
+    const apiAccessToken = process.env.NEXT_PUBLIC_API_ACCESS_TOKEN;  
+    const response = await fetch(`/api/instagram/auth`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiAccessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        user_id: user.id,
+        user_id: user.sub,
         instagram_user_id: instagramUserId,
         instagram_username: instagramUsername,
         access_token: accessToken,
@@ -254,7 +254,7 @@ export default function Page() {
 
             {activeTab === "account" && (
               <div>
-                <UserProfile
+                {/* <UserProfile
                   routing="hash"
                   appearance={{
                     elements: {
@@ -262,7 +262,7 @@ export default function Page() {
                       size: "flexible",
                     },
                   }}
-                />
+                /> */}
               </div>
             )}
 

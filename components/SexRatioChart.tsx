@@ -1,6 +1,6 @@
 'use client';
 
-import { useUser } from '@clerk/nextjs';
+import { useUser } from '@auth0/nextjs-auth0/client';
 import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Sector, Cell, ResponsiveContainer } from 'recharts';
 
@@ -54,7 +54,7 @@ const renderActiveShape = (props: any) => {
 
 export default function SexRatioChart({ onDataLoaded }: { onDataLoaded?: () => void }) {
   const { user } = useUser();
-  const userId = user?.id || null;
+  const userId = user?.org_id || null;
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<{ name: string; value: number }[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -87,7 +87,6 @@ export default function SexRatioChart({ onDataLoaded }: { onDataLoaded?: () => v
 
       try {
         const apiAccessToken = process.env.NEXT_PUBLIC_API_ACCESS_TOKEN;
-        console.log(apiAccessToken)
         const response = await fetch(
           `/api/instagram/retrieve/instagram_data?user_id=${userId}&data_type=follower_demographics_month`,
           {
@@ -96,20 +95,16 @@ export default function SexRatioChart({ onDataLoaded }: { onDataLoaded?: () => v
             },
           }
         );
-        if (!response.ok) {
-          throw new Error('データの取得に失敗しました。');
-        }
-        const json = await response.json();
-        if (!json || !json.data || json.length === 0) {
-          throw new Error('APIから有効なデータが返されませんでした。');
-        }
-        const results = json.data.requestData.total_value.breakdowns[0].results;
+
+        const json = response.ok ? await response.json() : null;
+        const results: ResultEntry[] = json?.data?.requestData?.total_value?.breakdowns?.[0]?.results ?? [];
 
         const genderCounts: Record<string, number> = { F: 0, M: 0, U: 0 };
-
         results.forEach((entry: ResultEntry) => {
           const gender = entry.dimension_values[1];
-          genderCounts[gender] = (genderCounts[gender] || 0) + entry.value;
+          if (genderCounts.hasOwnProperty(gender)) {
+            genderCounts[gender] += entry.value;
+          }
         });
 
         setData([
@@ -127,9 +122,8 @@ export default function SexRatioChart({ onDataLoaded }: { onDataLoaded?: () => v
     fetchData();
   }, [userId, onDataLoaded]);
 
-  const onPieEnter = (_: unknown, index: number) => {
-    setActiveIndex(index);
-  };
+  const onPieEnter = (_: unknown, index: number) => setActiveIndex(index);
+
 
   if (error) return <div className="w-auto h-full dashboard-bg ">Error: {error}</div>;
 
