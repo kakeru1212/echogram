@@ -95,7 +95,6 @@ export default function DemographicsBarChart({ onDataLoaded }: { onDataLoaded?: 
   const [selectedPeriod, setSelectedPeriod] = useState<"week" | "month">("month");
   const dataType = `follower_demographics_${selectedPeriod}`;
   const [chartData, setChartData] = useState<ChartDataEntry[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [activeBars, setActiveBars] = useState<string[]>(["F", "M", "U"]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -128,7 +127,11 @@ export default function DemographicsBarChart({ onDataLoaded }: { onDataLoaded?: 
         const apiAccessToken = process.env.NEXT_PUBLIC_API_ACCESS_TOKEN;
         const response = await fetch(
           `/api/instagram/retrieve/instagram_data?user_id=${userId}&data_type=${dataType}`,
-          { headers: { Authorization: `Bearer ${apiAccessToken}` } }
+          {
+            headers: {
+              Authorization: `Bearer ${apiAccessToken}`
+            }
+          }
         );
 
         if (!response.ok) {
@@ -163,7 +166,6 @@ export default function DemographicsBarChart({ onDataLoaded }: { onDataLoaded?: 
       } catch (error) {
         console.error('Demographics fetch error:', error);
         setChartData(initialValueData);
-        setError("データ取得エラー");
       } finally {
         if (onDataLoaded) onDataLoaded();
       }
@@ -177,8 +179,6 @@ export default function DemographicsBarChart({ onDataLoaded }: { onDataLoaded?: 
       to { transform: scaleY(1); }
     }
   `;
-
-  if (error) return <div className="w-auto h-full dashboard-bg ">Error: {error}</div>;
 
   return (
     <div className="dashboard-bg">

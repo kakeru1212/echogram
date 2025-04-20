@@ -23,7 +23,6 @@ type DataTypeOption = {
 export default function CountNumber({ startDate, endDate, dataType, onDataLoaded }: Props) {
   const { user } = useUser();
   const userId = user?.sub || null;
-  const [error, setError] = useState<string | null>(null);
   const [value, setValue] = useState<number>(0);
   const dataTypeOptions: DataTypeOption[] = [
     { value: "business_discovery", label: "フォロワー数" },
@@ -102,7 +101,7 @@ export default function CountNumber({ startDate, endDate, dataType, onDataLoaded
 
       } catch (error) {
         console.error('データ取得エラー:', error);
-        setError("データ取得エラー");
+        setValue(0);
       } finally {
         if (onDataLoaded) onDataLoaded();
       }
@@ -110,8 +109,6 @@ export default function CountNumber({ startDate, endDate, dataType, onDataLoaded
 
     fetchChartData();
   }, [userId, startDate, endDate, dataType, onDataLoaded]);
-
-  if (error) return <div className="w-auto h-full dashboard-bg ">Error: {error}</div>;
 
   return (
     <div className='dashboard-bg'>

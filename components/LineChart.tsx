@@ -34,7 +34,6 @@ export default function LineChart({ startDate, endDate, onDataLoaded }: Props) {
   const { user } = useUser();
   const userId = user?.sub || null;
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [dataType, setDataType] = useState<string>("business_discovery");
 
   const dataTypeOptions: DataTypeOption[] = [
@@ -55,6 +54,11 @@ export default function LineChart({ startDate, endDate, onDataLoaded }: Props) {
   useEffect(() => {
     async function fetchChartData() {
       if (!userId || !startDate || !endDate) {
+        setChartData([{
+          date: startDate,
+          displayDate: dayjs(startDate).format("M/D"),
+          value: 0,
+        }]);
         if (onDataLoaded) onDataLoaded();
         return;
       }
@@ -117,7 +121,11 @@ export default function LineChart({ startDate, endDate, onDataLoaded }: Props) {
         setChartData(formattedData);
       } catch (error) {
         console.error('データ取得エラー:', error);
-        setError("データ取得エラー");
+        setChartData([{
+          date: startDate,
+          displayDate: dayjs(startDate).format("M/D"),
+          value: 0,
+        }]);
       } finally {
         onDataLoaded();
       }
@@ -179,8 +187,6 @@ export default function LineChart({ startDate, endDate, onDataLoaded }: Props) {
 
   const yAxis = yAxisProps();
   const xTicks = xAxisTicks();
-
-  if (error) return <div className="w-auto h-full dashboard-bg ">Error: {error}</div>;
 
   return (
     <div className="dashboard-bg">

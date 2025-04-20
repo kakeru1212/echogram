@@ -94,7 +94,6 @@ function transformOnlineFollowersData(originalData: OriginalData[]): Transformed
 export default function OnlineFollowersBubbleChart({ onDataLoaded }: { onDataLoaded?: () => void }) {
   const { user } = useUser();
   const userId = user?.sub || null;
-  const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<ChartDataPoint[]>([]);
 
   const initialValueData = useRef<ChartDataPoint[]>([]);
@@ -162,7 +161,6 @@ export default function OnlineFollowersBubbleChart({ onDataLoaded }: { onDataLoa
       } catch (error) {
         console.error('データ取得エラー:', error);
         setData(initialValueData.current);
-        setError("データ取得エラー");
       } finally {
         if (onDataLoaded) onDataLoaded();
       }
@@ -196,8 +194,6 @@ export default function OnlineFollowersBubbleChart({ onDataLoaded }: { onDataLoa
     }
     return null;
   };
-
-  if (error) return <div className="w-auto h-full dashboard-bg ">Error: {error}</div>;
 
   return (
     <div className="dashboard-bg">

@@ -55,7 +55,6 @@ const renderActiveShape = (props: any) => {
 export default function SexRatioChart({ onDataLoaded }: { onDataLoaded?: () => void }) {
   const { user } = useUser();
   const userId = user?.org_id || null;
-  const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<{ name: string; value: number }[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [innerRadius, setInnerRadius] = useState(80);
@@ -114,7 +113,6 @@ export default function SexRatioChart({ onDataLoaded }: { onDataLoaded?: () => v
         ]);
       } catch (error) {
         console.error('データ取得エラー:', error);
-        setError("データ取得エラー");
       } finally {
         if (onDataLoaded) onDataLoaded();
       }
@@ -123,9 +121,6 @@ export default function SexRatioChart({ onDataLoaded }: { onDataLoaded?: () => v
   }, [userId, onDataLoaded]);
 
   const onPieEnter = (_: unknown, index: number) => setActiveIndex(index);
-
-
-  if (error) return <div className="w-auto h-full dashboard-bg ">Error: {error}</div>;
 
   return (
     <div className="dashboard-bg">
