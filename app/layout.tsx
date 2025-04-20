@@ -16,11 +16,7 @@ export const metadata: Metadata = {
   description: "SNS management tools",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode; }>) {
   return (
     <html lang="ja" className={inter.variable}>
       <body className="min-h-screen bg-background font-sans antialiased">
