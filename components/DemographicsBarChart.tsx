@@ -22,10 +22,16 @@ const GENDER_LABELS: Record<string, string> = {
   U: "不明",
 };
 const GENDER_COLORS: Record<string, string> = {
-  F: "rgb(241,107,101, 0.6)", // 女性用
-  M: "rgb(95,175,241, 0.6)", // 男性用
-  U: "rgb(186, 186, 186, 0.6)",  // 不明
+  F: "rgb(255, 100, 100, 0.6)",  // グラフ色（女性）
+  M: "rgb(100, 175, 255, 0.6)",   // グラフ色（男性）
+  U: "rgb(200, 200, 200, 0.6)",  // グラフ色（不明）
 };
+const LEGEND_COLORS: Record<string, string> = {
+  F: "#ff8282", // 凡例色（女性）
+  M: "#6496ff", // 凡例色（男性）
+  U: "#6e6e6e", // 凡例色（不明）
+};
+
 
 interface VerticalRectangleProps {
   fill: string;
@@ -124,14 +130,8 @@ export default function DemographicsBarChart({ onDataLoaded }: { onDataLoaded?: 
       }));
 
       try {
-        const apiAccessToken = process.env.NEXT_PUBLIC_API_ACCESS_TOKEN;
         const response = await fetch(
-          `/api/instagram/retrieve/instagram_data?user_id=${userId}&data_type=${dataType}`,
-          {
-            headers: {
-              Authorization: `Bearer ${apiAccessToken}`
-            }
-          }
+          `/api/instagram/retrieve/instagram_data?user_id=${userId}&data_type=${dataType}`
         );
 
         if (!response.ok) {
@@ -207,6 +207,13 @@ export default function DemographicsBarChart({ onDataLoaded }: { onDataLoaded?: 
           <Legend
             onClick={handleLegendClick}
             formatter={(value) => GENDER_LABELS[value] || value}
+            payload={GENDER_KEYS.map((key) => ({
+              id: key,
+              type: "square",
+              value: GENDER_LABELS[key],
+              color: activeBars.includes(key) ? LEGEND_COLORS[key] : "#ccc",
+              dataKey: key,
+            }))}
           />
           {GENDER_KEYS.map((gender) => (
             <Bar

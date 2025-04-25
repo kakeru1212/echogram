@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import mysql, { RowDataPacket } from "mysql2/promise";
 import { format, toZonedTime } from "date-fns-tz";
 
@@ -15,24 +15,6 @@ const dbConfig = {
 		rejectUnauthorized: true,
 	},
 };
-
-function validateAccessToken(req: NextRequest): boolean {
-  const validToken = process.env.API_ACCESS_TOKEN;
-
-  if (!validToken) {
-    console.error("API_ACCESS_TOKEN is not set in environment variables");
-    return false;
-  }
-
-  const authHeader = req.headers.get('Authorization');
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return false;
-  }
-
-  const token = authHeader.split(' ')[1];
-  return token === validToken;
-}
 
 // 今日から指定した日数前の日付を取得する関数
 function getDateDaysAgo(days: number) {
@@ -196,17 +178,10 @@ async function fetchAndSaveInstagramData(connection: mysql.Connection, user: Ins
 	}
 }
 
-export async function GET(req: NextRequest) {
+export async function GET() {
 	try {
 		const connection = await mysql.createConnection(dbConfig);
 
-    if (!validateAccessToken(req)) {
-      return NextResponse.json(
-        { error: "無効なアクセストークンです" },
-        { status: 401 }
-      );
-    }
-		
 		// すべてのユーザー情報を取得
 		const [rows] = await connection.execute<InstagramUser[]>(
 			"SELECT user_id, instagram_username, instagram_user_id, access_token FROM instagram_user"

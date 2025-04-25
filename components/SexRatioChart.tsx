@@ -54,7 +54,7 @@ const renderActiveShape = (props: any) => {
 
 export default function SexRatioChart({ onDataLoaded }: { onDataLoaded?: () => void }) {
   const { user } = useUser();
-  const userId = user?.org_id || null;
+  const userId = user?.sub || null;
   const [data, setData] = useState<{ name: string; value: number }[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [innerRadius, setInnerRadius] = useState(80);
@@ -85,14 +85,8 @@ export default function SexRatioChart({ onDataLoaded }: { onDataLoaded?: () => v
       }
 
       try {
-        const apiAccessToken = process.env.NEXT_PUBLIC_API_ACCESS_TOKEN;
         const response = await fetch(
-          `/api/instagram/retrieve/instagram_data?user_id=${userId}&data_type=follower_demographics_month`,
-          {
-            headers: {
-              "Authorization": `Bearer ${apiAccessToken}`,
-            },
-          }
+          `/api/instagram/retrieve/instagram_data?user_id=${userId}&data_type=follower_demographics_month`
         );
 
         const json = response.ok ? await response.json() : null;

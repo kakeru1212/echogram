@@ -14,37 +14,12 @@ const dbConfig = {
   },
 };
 
-function validateAccessToken(req: NextRequest): boolean {
-  const validToken = process.env.API_ACCESS_TOKEN;
-
-  if (!validToken) {
-    console.error("API_ACCESS_TOKEN is not set in environment variables");
-    return false;
-  }
-
-  const authHeader = req.headers.get('Authorization');
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return false;
-  }
-
-  const token = authHeader.split(' ')[1];
-  return token === validToken;
-}
-
 // DB接続してinstagram_dataを取得
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const user_id = searchParams.get("user_id");
     const data_type = searchParams.get("data_type");
-
-    if (!validateAccessToken(req)) {
-      return NextResponse.json(
-        { error: "無効なアクセストークンです" },
-        { status: 401 }
-      );
-    }
 
     if (!user_id || !data_type) {
       return NextResponse.json(

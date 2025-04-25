@@ -106,14 +106,8 @@ export default function OnlineFollowersBubbleChart({ onDataLoaded }: { onDataLoa
       }
 
       try {
-        const apiAccessToken = process.env.NEXT_PUBLIC_API_ACCESS_TOKEN;
         const response = await fetch(
-          `/api/instagram/retrieve/instagram_data?user_id=${userId}&data_type=online_followers`,
-          {
-            headers: {
-              "Authorization": `Bearer ${apiAccessToken}`,
-            },
-          }
+          `/api/instagram/retrieve/instagram_data?user_id=${userId}&data_type=online_followers`
         );
 
         if (!response.ok) {

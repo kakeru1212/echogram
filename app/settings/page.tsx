@@ -23,13 +23,7 @@ export default function Page() {
 
   useEffect(() => {
     if (user) {
-      const apiAccessToken = process.env.NEXT_PUBLIC_API_ACCESS_TOKEN;
-      fetch(`/api/instagram/auth?user_id=${user.sub}`,
-        {
-          headers: {
-            "Authorization": `Bearer ${apiAccessToken}`,
-          },
-        })
+      fetch(`/api/instagram/auth?user_id=${user.sub}`)
         .then((res) => res.json())
         .then((data) => {
           if (data.instagram_user_id) {

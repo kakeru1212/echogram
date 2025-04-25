@@ -15,34 +15,9 @@ const dbConfig = {
   },
 };
 
-function validateAccessToken(req: NextRequest): boolean {
-  const validToken = process.env.API_ACCESS_TOKEN;
-
-  if (!validToken) {
-    console.error("API_ACCESS_TOKEN is not set in environment variables");
-    return false;
-  }
-
-  const authHeader = req.headers.get('Authorization');
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return false;
-  }
-
-  const token = authHeader.split(' ')[1];
-  return token === validToken;
-}
-
 // Instagramユーザー情報を取得
 export async function GET(req: NextRequest) {
   const user_id = req.nextUrl.searchParams.get("user_id");
-
-  if (!validateAccessToken(req)) {
-    return NextResponse.json(
-      { error: "無効なアクセストークンです" },
-      { status: 401 }
-    );
-  }
 
   if (!user_id) {
     return NextResponse.json({ error: "ユーザーIDが必要です" }, { status: 400 });
@@ -72,13 +47,6 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const { user_id, instagram_user_id, instagram_username, access_token } = await req.json();
-
-    if (!validateAccessToken(req)) {
-      return NextResponse.json(
-        { error: "無効なアクセストークンです" },
-        { status: 401 }
-      );
-    }
 
     if (!user_id || !instagram_user_id || !instagram_username || !access_token) {
       return NextResponse.json({ error: "すべての項目を入力してください" }, { status: 400 });
