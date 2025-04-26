@@ -119,37 +119,65 @@ export default function LineChart({ startDate, endDate, onDataLoaded }: Props) {
   }, [userId, startDate, endDate, dataType, onDataLoaded]);
 
   const yAxisProps = () => {
-    if (chartData.length === 0) return { domain: [0, 0], ticks: [0] };
+
+    if (chartData.length === 0) return { domain: [0, 4], ticks: [0, 1, 2, 3, 4] };
 
     const values = chartData.map(item => item.value);
-    const min = Math.max(0, Math.min(...values) - 5);
-    const max = Math.max(...values) + 5;
-
-    const range = max - min;
-    let interval = Math.ceil(range / 12);
-
-    const magnitude = 10 ** Math.floor(Math.log10(interval));
-    const normalizedInterval = interval / magnitude;
-
-    if (normalizedInterval <= 0.2) interval = 0.2 * magnitude;
-    else if (normalizedInterval <= 0.5) interval = 0.5 * magnitude;
-    else if (normalizedInterval <= 1) interval = 1 * magnitude;
-    else if (normalizedInterval <= 2) interval = 2 * magnitude;
-    else interval = 5 * magnitude;
-
-    const adjustedMin = Math.floor(min / interval) * interval;
-    const adjustedMax = Math.ceil(max / interval) * interval;
-
-    const ticks = [];
-    for (let i = adjustedMin; i <= adjustedMax; i += interval) {
-      ticks.push(i);
+    const minValue = Math.max(0, Math.min(...values));
+    const maxValue = Math.max(...values);
+    
+    if (minValue === maxValue) {
+      if (minValue === 0) {
+        return { domain: [0, 4], ticks: [0, 1, 2, 3, 4] };
+      }
+      
+      const interval = Math.max(1, Math.ceil(minValue * 0.2 / 5) * 5);
+      const bottom = Math.max(0, minValue - interval * 2);
+      const top = minValue + interval * 2;
+      
+      return {
+        domain: [bottom, top],
+        ticks: [
+          bottom,
+          bottom + interval,
+          minValue,
+          top - interval,
+          top
+        ]
+      };
     }
 
+    const useZeroMin = minValue <= maxValue * 0.3;
+    const effectiveMin = useZeroMin ? 0 : minValue;
+    const range = maxValue - effectiveMin;
+    const interval = Math.max(1, Math.ceil(range / 4));
+    const adjustedMin = useZeroMin ? 0 : Math.floor(minValue / interval) * interval;
+    const adjustedMax = adjustedMin + interval * 4;
+    
+    if (adjustedMax < maxValue) {
+      const newInterval = Math.ceil((maxValue - adjustedMin) / 4);
+      const newMax = adjustedMin + newInterval * 4;
+      
+      const ticks = [];
+      for (let i = 0; i <= 4; i++) {
+        const value = adjustedMin + (i * newInterval);
+        ticks.push(value);
+      }
+      
+      return { domain: [adjustedMin, newMax], ticks };
+    }
+    
+    const ticks = [];
+    for (let i = 0; i <= 4; i++) {
+      const value = adjustedMin + (i * interval);
+      ticks.push(value);
+    }
+    
     return { domain: [adjustedMin, adjustedMax], ticks };
   };
 
   const xAxisTicks = () => {
-    if (chartData.length <= 1) return [];
+    if (chartData.length <= 1) return chartData.map(item => item.displayDate);
 
     const numTicks = Math.min(7, chartData.length);
     const interval = Math.ceil(chartData.length / numTicks);
