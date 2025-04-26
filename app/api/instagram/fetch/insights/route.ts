@@ -2,7 +2,13 @@ import { NextResponse } from "next/server";
 import mysql, { RowDataPacket } from "mysql2/promise";
 import { format, toZonedTime } from "date-fns-tz";
 
-export const dynamic = 'force-dynamic';
+const getCACert = () => {
+  if (process.env.CA_CERT) {
+    const buff = Buffer.from(process.env.CA_CERT, 'base64');
+    return buff.toString('ascii');
+  }
+  return undefined;
+};
 
 // TiDB 接続設定
 const dbConfig = {
@@ -13,6 +19,7 @@ const dbConfig = {
 	database: process.env.DB_DATABASE,
 	ssl: {
 		rejectUnauthorized: true,
+		ca: getCACert(),
 	},
 };
 

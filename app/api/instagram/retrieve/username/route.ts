@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import mysql from "mysql2/promise";
 
-export const dynamic = 'force-dynamic';
+const getCACert = () => {
+  if (process.env.CA_CERT) {
+    const buff = Buffer.from(process.env.CA_CERT, 'base64');
+    return buff.toString('ascii');
+  }
+  return undefined;
+};
 
+// TiDB 接続設定
 const dbConfig = {
   host: process.env.DB_HOST,
   port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 4000,
@@ -11,10 +18,11 @@ const dbConfig = {
   database: process.env.DB_DATABASE,
   ssl: {
     rejectUnauthorized: true,
+    ca: getCACert(),
   },
 };
 
-// DB接続してinstagram_usernameを取得
+// s
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);

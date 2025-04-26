@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export const dynamic = 'force-dynamic';
-
 // 接続テスト
 export async function GET(req: NextRequest) {
 	try {
