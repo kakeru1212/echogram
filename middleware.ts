@@ -6,5 +6,8 @@ export default withMiddlewareAuthRequired(function middleware() {
 });
 
 export const config = {
-  matcher: ['/:path*']
+  matcher: [
+    // business_discovery ,insights へのパスは除外
+    '/((?!api/instagram/fetch/(?:business_discovery|insights)).*)'
+  ],
 };
