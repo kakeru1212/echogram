@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import mysql, { RowDataPacket } from "mysql2/promise";
 import { format, toZonedTime } from "date-fns-tz";
 
@@ -185,7 +185,16 @@ async function fetchAndSaveInstagramData(connection: mysql.Connection, user: Ins
 	}
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+
+	const lambdaSecret = req.headers.get("x-lambda-secret");
+	if (!lambdaSecret || lambdaSecret !== process.env.LAMBDA_SECRET) {
+		return NextResponse.json(
+			{ error: "not_authenticated", description: "Invalid or missing lambda secret" },
+			{ status: 401 }
+		);
+	}
+
 	try {
 		const connection = await mysql.createConnection(dbConfig);
 

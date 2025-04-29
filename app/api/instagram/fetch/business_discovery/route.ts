@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import mysql from "mysql2/promise";
 
 const getCACert = () => {
-  if (process.env.CA_CERT) {
-    const buff = Buffer.from(process.env.CA_CERT, 'base64');
-    return buff.toString('ascii');
-  }
-  return undefined;
+	if (process.env.CA_CERT) {
+		const buff = Buffer.from(process.env.CA_CERT, 'base64');
+		return buff.toString('ascii');
+	}
+	return undefined;
 };
 
 // TiDB 接続設定
@@ -23,6 +23,15 @@ const dbConfig = {
 };
 
 export async function GET(req: NextRequest) {
+
+	const lambdaSecret = req.headers.get("x-lambda-secret");
+	if (!lambdaSecret || lambdaSecret !== process.env.LAMBDA_SECRET) {
+		return NextResponse.json(
+			{ error: "not_authenticated", description: "Invalid or missing lambda secret" },
+			{ status: 401 }
+		);
+	}
+
 	try {
 		const version = process.env.INSTAGRAM_VERSION;
 		const { searchParams } = new URL(req.url);
