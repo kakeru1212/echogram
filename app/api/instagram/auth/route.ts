@@ -39,11 +39,20 @@ export async function GET(req: NextRequest) {
 
     await connection.end();
 
-    if (Array.isArray(rows) && rows.length > 0) {
-      return NextResponse.json(rows[0], { status: 200 });
-    } else {
-      return NextResponse.json({ error: "データがありません" }, { status: 404 });
+
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return NextResponse.json({
+        success: false,
+        error: "Data not found",
+      }, { status: 404 }
+      );
     }
+
+    return NextResponse.json({
+      success: true,
+      data: rows[0]
+    }, { status: 200 });
+
   } catch (error) {
     console.error('データ取得エラー:', error);
     return NextResponse.json({ error: "データ取得エラー" }, { status: 500 });
@@ -54,9 +63,21 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const { user_id, instagram_user_id, instagram_username, access_token } = await req.json();
+    const version = process.env.INSTAGRAM_VERSION;
 
     if (!user_id || !instagram_user_id || !instagram_username || !access_token) {
       return NextResponse.json({ error: "すべての項目を入力してください" }, { status: 400 });
+    }
+
+    const profileDataUrl = `https://graph.facebook.com/${version}/${instagram_user_id}?fields=profile_picture_url,name,username,biography&access_token=${access_token}`;
+    const profileDataUrlResponse = await fetch(profileDataUrl);
+    if (!profileDataUrlResponse.ok) {
+      return NextResponse.json({ error: "プロファイルが取得できません" }, { status: 400 });
+    }
+    const profileData = await profileDataUrlResponse.json();
+
+    if (!profileDataUrlResponse.ok) {
+      return NextResponse.json({ error: "プロファイルが取得できません" }, { status: 400 });
     }
 
     const connection = await mysql.createConnection(dbConfig);
@@ -70,14 +91,14 @@ export async function POST(req: NextRequest) {
     if (Array.isArray(existing) && existing.length > 0) {
       // 既存データがある場合は UPDATE
       await connection.execute(
-        "UPDATE instagram_user SET instagram_user_id = ?, instagram_username = ?, access_token = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?",
-        [instagram_user_id, instagram_username, access_token, user_id]
+        "UPDATE instagram_user SET instagram_user_id = ?, instagram_username = ?, access_token = ?, profile_data = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?",
+        [instagram_user_id, instagram_username, access_token, JSON.stringify(profileData), user_id]
       );
     } else {
       // 新規登録
       await connection.execute(
-        "INSERT INTO instagram_user (user_id, instagram_user_id, instagram_username, access_token) VALUES (?, ?, ?, ?)",
-        [user_id, instagram_user_id, instagram_username, access_token]
+        "INSERT INTO instagram_user (user_id, instagram_user_id, instagram_username, access_token, profile_data) VALUES (?, ?, ?, ?, ?)",
+        [user_id, instagram_user_id, instagram_username, access_token, JSON.stringify(profileData)]
       );
     }
 
@@ -88,22 +109,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "データベースエラー" }, { status: 500 });
   }
 }
-
-// // Instagramユーザー情報を削除
-// export async function DELETE(req: NextRequest) {
-//   const user_id = req.nextUrl.searchParams.get("user_id");
-//   if (!user_id) {
-//     return NextResponse.json({ error: "ユーザーIDが必要です" }, { status: 400 });
-//   }
-
-//   try {
-//     const connection = await mysql.createConnection(dbConfig);
-//     await connection.execute("DELETE FROM instagram_user WHERE user_id = ?", [user_id]);
-//     await connection.end();
-
-//     return NextResponse.json({ message: "データを削除しました" }, { status: 200 });
-//   } catch (error) {
-//     console.error('削除エラー:', error);
-//     return NextResponse.json({ error: "削除エラー" }, { status: 500 });
-//   }
-// }

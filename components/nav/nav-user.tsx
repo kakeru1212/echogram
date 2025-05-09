@@ -1,12 +1,10 @@
 "use client"
 
 import { RiExpandUpDownLine } from "react-icons/ri";
-import { VscAccount } from "react-icons/vsc";
 import { Avatar, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -37,7 +35,6 @@ export function NavUser({
             >
               <Avatar className="h-8 w-8 rounded-circle">
                 <AvatarImage src={user.avatar} alt={user.name} />
-                {/* <AvatarFallback className="rounded-lg">CN</AvatarFallback> */}
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">{user.name}</span>
@@ -66,16 +63,10 @@ export function NavUser({
 
             <DropdownMenuSeparator />
 
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <VscAccount />
-                アカウント
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-
             <DropdownMenuItem>
               <SignOutButton />
             </DropdownMenuItem>
+
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

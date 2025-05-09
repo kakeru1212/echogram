@@ -6,9 +6,8 @@ import Header from '@/components/nav/Header';
 import { FaInstagram } from "react-icons/fa";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { IconType } from 'react-icons';
-import { MdManageAccounts } from 'react-icons/md';
-
-type SettingsTab = 'account' | 'instagram';
+import Image from 'next/image';
+import dayjs from 'dayjs';
 
 export default function Page() {
   const { user } = useUser();
@@ -21,20 +20,52 @@ export default function Page() {
   const [isVisible, setIsVisible] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
 
+  const [profileData, setProfileData] = useState<{
+    profile_picture_url?: string;
+    username?: string;
+    name?: string;
+    biography?: string;
+    created_at?: string;
+  } | null>(null);
+
+
+  useEffect(() => {
+    if (!message) return;
+    const timer = setTimeout(() => {
+      setMessage('');
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [message]);
+
   useEffect(() => {
     if (user) {
       fetch(`/api/instagram/auth?user_id=${user.sub}`)
         .then((res) => res.json())
         .then((data) => {
-          if (data.instagram_user_id) {
-            setInstagramUserId(data.instagram_user_id);
-            setInstagramUsername(data.instagram_username);
-            setAccessToken(data.access_token);
+          if (data.success) {
+            setInstagramUserId(data.data.instagram_user_id ?? "");
+            setInstagramUsername(data.data.instagram_username ?? "");
+            setAccessToken(data.data.access_token ?? "");
             setIsEditing(true);
             setIsVerified(true);
           }
         })
-        .catch(() => setMessage("データ取得に失敗しました"));
+        .catch(() => setMessage("データ取得に失敗しました")
+        );
+
+      fetch(`/api/instagram/retrieve/instagram_user?user_id=${user.sub}&fields=profile_data,created_at`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+
+            setProfileData({
+              ...data.data.profile_data,
+              created_at: data.data.created_at,
+            });
+          }
+        })
+        .catch(() => setMessage("データ取得に失敗しました")
+        );
     }
   }, [user]);
 
@@ -52,11 +83,9 @@ export default function Page() {
       return;
     }
 
-    const apiAccessToken = process.env.NEXT_PUBLIC_API_ACCESS_TOKEN;  
     const response = await fetch(`/api/instagram/auth`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${apiAccessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -76,25 +105,6 @@ export default function Page() {
     }
   };
 
-  // const handleDelete = async () => {
-  //   if (!confirm("本当に削除しますか？")) return;
-
-  //   const response = await fetch(`/api/instagram/auth?user_id=${user?.id}`, {
-  //     method: "DELETE",
-  //   });
-
-  //   if (response.ok) {
-  //     setInstagramUserId("");
-  //     setInstagramUsername("");
-  //     setAccessToken("");
-  //     setIsEditing(false);
-  //     setMessage("データを削除しました");
-  //   } else {
-  //     setMessage("削除に失敗しました");
-  //   }
-  // };
-
-
   const handleCheckID = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage("");
@@ -104,14 +114,8 @@ export default function Page() {
       return;
     }
 
-    const apiAccessToken = process.env.NEXT_PUBLIC_API_ACCESS_TOKEN;
     const response = await fetch(
       `/api/instagram/fetch/connect?user_id=${instagramUserId}&instagram_username=${instagramUsername}&access_token=${accessToken}`,
-      {
-        headers: {
-          "Authorization": `Bearer ${apiAccessToken}`,
-        },
-      }
     );
     const result = await response.json();
     if (!response.ok) {
@@ -129,9 +133,10 @@ export default function Page() {
   };
 
 
+  type SettingsTab = 'instagram';
+
   const tabs: { id: SettingsTab; label: string; icon: IconType }[] = [
     { id: "instagram" as SettingsTab, label: "インスタグラムアカウント", icon: FaInstagram },
-    { id: "account" as SettingsTab, label: "会員情報", icon: MdManageAccounts },
   ];
 
   return (
@@ -165,9 +170,43 @@ export default function Page() {
             {activeTab === "instagram" && (
               <div className='p-8 '>
 
-                <h2 className="text-2xl font-bold mb-6">
-                  {isEditing ? "Instagram ユーザー編集" : "Instagram ユーザー登録"}
-                </h2>
+
+
+                <div className="mb-6 bg-slate-50 rounded-lg shadow-md p-4 flex space-x-8 items-center">
+                  {profileData?.profile_picture_url && (
+                    <Image
+                      src={profileData.profile_picture_url}
+                      alt="Instagram プロフィール画像"
+                      width={128}
+                      height={128}
+                      className="rounded-full object-cover"
+                    />
+                  )}
+                  <div className="flex-1">
+                    <div className="flex justify-between items-center">
+                      <p className="text-lg font-semibold">
+                        {profileData?.username || "未設定"}
+                      </p>
+                      <p className="text-sm text-gray-700">
+                        登録日: {profileData?.created_at
+                          ? dayjs(profileData.created_at).format("YYYY年MM月DD日")
+                          : ""}
+                      </p>
+                    </div>
+                    {profileData?.name && (
+                      <p className="text-md mt-2 text-gray-700">{profileData.name}</p>
+                    )}
+                    {profileData?.biography && (
+                      <p className="text-sm text-gray-700 mt-1 whitespace-pre-line">
+                        {profileData.biography}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+
+
+
                 <form className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -243,20 +282,6 @@ export default function Page() {
                     {message}
                   </div>
                 )}
-              </div>
-            )}
-
-            {activeTab === "account" && (
-              <div>
-                {/* <UserProfile
-                  routing="hash"
-                  appearance={{
-                    elements: {
-                      rootBox: "shadow-sm rounded-2xl",
-                      size: "flexible",
-                    },
-                  }}
-                /> */}
               </div>
             )}
 

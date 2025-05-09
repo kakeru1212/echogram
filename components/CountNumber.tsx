@@ -49,14 +49,15 @@ export default function CountNumber({ startDate, endDate, dataType, onDataLoaded
         let response;
         if (dataType === "business_discovery") {
           const igUsernameResponse = await fetch(
-            `/api/instagram/retrieve/username?user_id=${userId}`
+            `/api/instagram/retrieve/instagram_user?user_id=${userId}&fields=instagram_username`
           );
           const igUsernameJson = await igUsernameResponse.json();
           if (!igUsernameResponse.ok) {
             throw new Error('データの取得に失敗しました。');
           }
-          const igUsername = igUsernameJson.instagram_username;
-
+          
+          const igUsername = igUsernameJson.data.instagram_username;
+          
           response = await fetch(
             `/api/instagram/retrieve/business_discovery?user_id=${userId}&instagram_username=${igUsername}&start_date=${startDate}&end_date=${endDate}`
           );
