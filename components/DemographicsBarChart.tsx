@@ -27,9 +27,9 @@ const GENDER_COLORS: Record<string, string> = {
   U: "rgb(200, 200, 200, 0.6)",  // グラフ色（不明）
 };
 const LEGEND_COLORS: Record<string, string> = {
-  F: "#ff8282", // 凡例色（女性）
-  M: "#6496ff", // 凡例色（男性）
-  U: "#6e6e6e", // 凡例色（不明）
+  F: "rgb(255, 130, 130)", // 凡例色（女性）
+  M: "rgb(100, 150, 255)", // 凡例色（男性）
+  U: "rgb(110, 110, 110)", // 凡例色（不明）
 };
 
 
