@@ -6,7 +6,19 @@ const nextConfig = {
     domains: [
       'scontent.fhnd7-1.fna.fbcdn.net',
     ],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.fbcdn.net',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.cdninstagram.com',
+        pathname: '/**',
+      },
+    ],
   },
 };
 
-module.exports = nextConfig; 
+module.exports = nextConfig;
