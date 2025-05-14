@@ -3,11 +3,11 @@ import mysql, { RowDataPacket } from "mysql2/promise";
 import { format, toZonedTime } from "date-fns-tz";
 
 const getCACert = () => {
-  if (process.env.CA_CERT) {
-    const buff = Buffer.from(process.env.CA_CERT, 'base64');
-    return buff.toString('ascii');
-  }
-  return undefined;
+	if (process.env.CA_CERT) {
+		const buff = Buffer.from(process.env.CA_CERT, 'base64');
+		return buff.toString('ascii');
+	}
+	return undefined;
 };
 
 // TiDB 接続設定
@@ -43,33 +43,37 @@ async function fetchAndSaveInstagramData(connection: mysql.Connection, user: Ins
 	try {
 		const { user_id, instagram_username, instagram_user_id, access_token } = user;
 		const version = process.env.INSTAGRAM_VERSION;
+		const untilDate = 2;
+		const sinceDate = untilDate + 1;
+		const weekSinceDate = untilDate + 8;
+
 
 		// フォロワーの人口統計学的特性（follower_demographics）
 		const demographicsWeekUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=follower_demographics&period=lifetime&timeframe=this_week&metric_type=total_value&breakdown=age,gender&access_token=${access_token}`;
 		const demographicsMonthUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=follower_demographics&period=lifetime&timeframe=this_month&metric_type=total_value&breakdown=age,gender&access_token=${access_token}`;
 
 		// オンラインのフォロワー数（online_followers）
-		const fourWeekSinceDate = getDateDaysAgo(10); // 初日を含む1週間+1日
-		const fourWeekUntilDate = getDateDaysAgo(2);
-		const onlineFollowersUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=online_followers&period=lifetime&timeframe=this_month&since=${fourWeekSinceDate}&until=${fourWeekUntilDate}&access_token=${access_token}`;
+		const formatWeekSinceDate = getDateDaysAgo(weekSinceDate); // 初日を含む1週間+1日
+		const formatWeekUntilDate = getDateDaysAgo(untilDate);
+		const onlineFollowersUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=online_followers&period=lifetime&timeframe=this_month&since=${formatWeekSinceDate}&until=${formatWeekUntilDate}&access_token=${access_token}`;
 
-		const sinceDate = getDateDaysAgo(3);
-		const untilDate = getDateDaysAgo(2);
+		const formatSinceDate = getDateDaysAgo(sinceDate);
+		const formatUntilDate = getDateDaysAgo(untilDate);
 
 		// リーチしたアカウント数（reach）
-		const reachUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=reach&period=day&metric_type=total_value&breakdown=media_product_type&since=${sinceDate}&until=${untilDate}&access_token=${access_token}`;
+		const reachUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=reach&period=day&metric_type=total_value&breakdown=media_product_type&since=${formatSinceDate}&until=${formatUntilDate}&access_token=${access_token}`;
 
 		// 閲覧数（views）
-		const viewsUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=views&period=day&metric_type=total_value&breakdown=media_product_type&since=${sinceDate}&until=${untilDate}&access_token=${access_token}`;
+		const viewsUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=views&period=day&metric_type=total_value&breakdown=media_product_type&since=${formatSinceDate}&until=${formatUntilDate}&access_token=${access_token}`;
 
 		// 外部リンクのタップ数（website_clicks）
-		const websiteClicksUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=website_clicks&period=day&metric_type=total_value&since=${sinceDate}&until=${untilDate}&access_token=${access_token}`;
+		const websiteClicksUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=website_clicks&period=day&metric_type=total_value&since=${formatSinceDate}&until=${formatUntilDate}&access_token=${access_token}`;
 
 		// プロフィールへのアクセス数（profile_views）
-		const profileViewsUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=profile_views&period=day&metric_type=total_value&since=${sinceDate}&until=${untilDate}&access_token=${access_token}`;
+		const profileViewsUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=profile_views&period=day&metric_type=total_value&since=${formatSinceDate}&until=${formatUntilDate}&access_token=${access_token}`;
 
 		// インタラクション数（いいね、コメント、シェアなどを含む）（total_interactions）
-		const totalInteractionsUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=total_interactions&period=day&metric_type=total_value&breakdown=media_product_type&since=${sinceDate}&until=${untilDate}&access_token=${access_token}`;
+		const totalInteractionsUrl = `https://graph.facebook.com/${version}/${instagram_user_id}/insights?metric=total_interactions&period=day&metric_type=total_value&breakdown=media_product_type&since=${formatSinceDate}&until=${formatUntilDate}&access_token=${access_token}`;
 
 		// フォロワー数、メディア数（business_discovery）
 		const businessDiscoveryUrl = `https://graph.facebook.com/${version}/${instagram_user_id}?fields=business_discovery.username(${instagram_username}){followers_count,media_count}&access_token=${access_token}`;
@@ -147,37 +151,37 @@ async function fetchAndSaveInstagramData(connection: mysql.Connection, user: Ins
 
 		await connection.execute(
 			`INSERT INTO instagram_chart (user_id, data_type, data, retrieved_at) 
-       VALUES (?, ?, ?, DATE_SUB(CURDATE(), INTERVAL 2 DAY))
+       VALUES (?, ?, ?, DATE_SUB(CURDATE(), INTERVAL ? DAY))
        ON DUPLICATE KEY UPDATE data = VALUES(data), updated_at = CURRENT_TIMESTAMP`,
-			[user_id, "reach", JSON.stringify(reachData)]
+			[user_id, "reach", JSON.stringify(reachData), untilDate]
 		);
 
 		await connection.execute(
 			`INSERT INTO instagram_chart (user_id, data_type, data, retrieved_at) 
-       VALUES (?, ?, ?, DATE_SUB(CURDATE(), INTERVAL 2 DAY))
+       VALUES (?, ?, ?, DATE_SUB(CURDATE(), INTERVAL ? DAY))
        ON DUPLICATE KEY UPDATE data = VALUES(data), updated_at = CURRENT_TIMESTAMP`,
-			[user_id, "views", JSON.stringify(viewsData)]
+			[user_id, "views", JSON.stringify(viewsData), untilDate]
 		);
 
 		await connection.execute(
 			`INSERT INTO instagram_chart (user_id, data_type, data, retrieved_at) 
-       VALUES (?, ?, ?, DATE_SUB(CURDATE(), INTERVAL 2 DAY))
+       VALUES (?, ?, ?, DATE_SUB(CURDATE(), INTERVAL ? DAY))
        ON DUPLICATE KEY UPDATE data = VALUES(data), updated_at = CURRENT_TIMESTAMP`,
-			[user_id, "website_clicks", JSON.stringify(websiteClicksData)]
+			[user_id, "website_clicks", JSON.stringify(websiteClicksData), untilDate]
 		);
 
 		await connection.execute(
 			`INSERT INTO instagram_chart (user_id, data_type, data, retrieved_at) 
-       VALUES (?, ?, ?, DATE_SUB(CURDATE(), INTERVAL 2 DAY))
+       VALUES (?, ?, ?, DATE_SUB(CURDATE(), INTERVAL ? DAY))
        ON DUPLICATE KEY UPDATE data = VALUES(data), updated_at = CURRENT_TIMESTAMP`,
-			[user_id, "profile_views", JSON.stringify(profileViewsData)]
+			[user_id, "profile_views", JSON.stringify(profileViewsData), untilDate]
 		);
 
 		await connection.execute(
 			`INSERT INTO instagram_chart (user_id, data_type, data, retrieved_at) 
-       VALUES (?, ?, ?, DATE_SUB(CURDATE(), INTERVAL 2 DAY))
+       VALUES (?, ?, ?, DATE_SUB(CURDATE(), INTERVAL ? DAY))
        ON DUPLICATE KEY UPDATE data = VALUES(data), updated_at = CURRENT_TIMESTAMP`,
-			[user_id, "total_interactions", JSON.stringify(totalInteractionsData)]
+			[user_id, "total_interactions", JSON.stringify(totalInteractionsData), untilDate]
 		);
 
 	} catch (error) {
