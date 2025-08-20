@@ -3,12 +3,11 @@
 import { FiLogOut } from 'react-icons/fi';
 
 export const SignOutButton = () => {
-  const base = 'https://master.dww3cxr5fnjzb.amplifyapp.com';
+  const base = typeof window !== 'undefined' ? window.location.origin : '';
   return (
     <button
       onClick={() =>
-        window.location.href =
-          `/api/auth/logout?federated&returnTo=${encodeURIComponent(base)}`
+        window.location.href = `/api/auth/logout?federated&returnTo=${encodeURIComponent(base)}`
       }
       className="flex items-center"
     >

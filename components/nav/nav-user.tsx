@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar"
 import { SignOutButton } from "../ui/signout-button";
+import { SignInButton } from "../ui/signin-button";
 
 export function NavUser({
   user,
@@ -64,7 +65,7 @@ export function NavUser({
             <DropdownMenuSeparator />
 
             <DropdownMenuItem>
-              <SignOutButton />
+              {user.email ? <SignOutButton /> : <SignInButton />}
             </DropdownMenuItem>
 
           </DropdownMenuContent>

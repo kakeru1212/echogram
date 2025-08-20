@@ -10,7 +10,6 @@ import Header from "@/components/nav/Header";
 import OnlineFollowersChart from "@/components/OnlineFollowersChart";
 import SexRatioChart from "@/components/SexRatioChart";
 import Loading from "@/components/Loading";
-import Link from 'next/link';
 
 export default function Page() {
   const { user, isLoading: isAuthLoading } = useUser();
@@ -43,6 +42,13 @@ export default function Page() {
 
   const isComponentLoading = Object.values(componentLoading).some(loading => loading);
 
+  // Redirect to login when unauthenticated
+  useEffect(() => {
+    if (!isAuthLoading && !user) {
+      window.location.href = "/api/auth/login";
+    }
+  }, [isAuthLoading, user]);
+
   if (isAuthLoading || initialLoading) {
     return (
       <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50 backdrop-blur-sm">
@@ -53,8 +59,8 @@ export default function Page() {
 
   if (!user) {
     return (
-      <div className="flex justify-center items-center h-screen text-xl">
-        <Link href="/api/auth/login" className="text-blue-500 underline">ログインしてください</Link>
+      <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50 backdrop-blur-sm">
+        <Loading />
       </div>
     );
   }
